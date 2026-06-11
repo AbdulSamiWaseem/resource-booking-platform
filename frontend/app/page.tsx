@@ -1,12 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { postRequest } from "./services/apiCalls";
+import { toast } from "react-hot-toast";
 
 export default function Home() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const handleSubmit = (e: any) => {
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
+
+    if (!name || !email) {
+      toast.error("Please enter your name and email.");
+      return;
+    }
+
+    const onSuccess = (res: any) => {
+      toast.success(res?.message || "Successful!");
+      setName("");
+      setEmail("");
+    };
+
+    const onError = (err: any) => {
+      toast.error(err?.message || "An error occurred.");
+    };
+
+    const route = "users";
+    await postRequest({ name, email }, route, onSuccess, onError);
   };
 
   return (
