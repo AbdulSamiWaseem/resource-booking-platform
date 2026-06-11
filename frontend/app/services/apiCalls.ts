@@ -8,7 +8,7 @@ const apiCall = async (
   onError: (error: any) => void = () => { },
 ) => {
   try {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     const url = `${baseUrl}${route}`;
 
     const config: any = {
