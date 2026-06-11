@@ -3,6 +3,7 @@ const createResponseObject = () => {
     error: false,
     auth: true,
     error_message: "",
+    success_message: "",
     data: null,
   };
 };

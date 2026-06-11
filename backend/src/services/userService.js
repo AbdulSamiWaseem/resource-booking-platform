@@ -11,8 +11,8 @@ const registerOrRetrieveUser = async (body, resp) => {
 
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
+    resp.success_message = "User already exists";
     resp.data = {
-      message: "User already exists",
       user: existingUser,
       isNew: false,
     };
@@ -20,8 +20,8 @@ const registerOrRetrieveUser = async (body, resp) => {
   }
 
   const newUser = await createUser({ name, email });
+  resp.success_message = "User created successfully";
   resp.data = {
-    message: "User created successfully",
     user: newUser,
     isNew: true,
   };

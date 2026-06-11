@@ -37,7 +37,7 @@ const handleResponse = async (options, req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: successMessage,
+      message: resp.success_message || successMessage,
       data: resp.data,
     });
   } catch (e) {
@@ -51,7 +51,7 @@ const findOrCreateUser = async (req, res) => {
       handler: registerOrRetrieveUser,
       validationFn: validateUser,
       handlerParams: [req.body],
-      successMessage: "User registered/retrieved successfully!",
+      successMessage: "Successful!",
     },
     req,
     res
