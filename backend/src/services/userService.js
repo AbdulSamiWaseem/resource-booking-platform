@@ -11,6 +11,11 @@ const registerOrRetrieveUser = async (body, resp) => {
 
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
+    if (existingUser.name !== name) {
+      resp.error = true;
+      resp.error_message = "Name does not match the registered name for this email";
+      return resp;
+    }
     resp.success_message = "User already exists";
     resp.data = {
       user: existingUser,
