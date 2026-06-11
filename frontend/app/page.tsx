@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { postRequest } from "./services/apiCalls";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -20,6 +22,7 @@ export default function Home() {
       toast.success(res?.message || "Successful!");
       setName("");
       setEmail("");
+      router.push("/dashboard");
     };
 
     const onError = (err: any) => {
