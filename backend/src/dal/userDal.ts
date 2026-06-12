@@ -1,4 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 // Verify database connection
@@ -6,23 +7,18 @@ prisma.$connect()
   .then(() => {
     console.log("Database connected successfully");
   })
-  .catch((err) => {
+  .catch((err: Error) => {
     console.error("Database connection failed:", err.message);
   });
 
-const findUserByEmail = async (email) => {
+export const findUserByEmail = async (email: string) => {
   return await prisma.user.findUnique({
     where: { email },
   });
 };
 
-const createUser = async (data) => {
+export const createUser = async (data: { name: string; email: string }) => {
   return await prisma.user.create({
     data,
   });
-};
-
-module.exports = {
-  findUserByEmail,
-  createUser,
 };

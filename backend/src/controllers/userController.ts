@@ -1,15 +1,16 @@
-const { registerOrRetrieveUser } = require("../services/userService");
-const { createResponseObject, RENDER_BAD_REQUEST } = require("../utils/constants");
-const { validateUser } = require("../validation/user");
+import { Request, Response } from "express";
+import { registerOrRetrieveUser } from "../services/userService";
+import { createResponseObject, RENDER_BAD_REQUEST } from "../utils/constants";
+import { validateUser } from "../validation/user";
 
-const handleResponse = async (options, req, res) => {
+const handleResponse = async (options: any, req: Request, res: Response) => {
   try {
     const { handler, validationFn, handlerParams, successMessage } = options;
 
     if (validationFn) {
       try {
         await validationFn(req.body);
-      } catch (e) {
+      } catch (e: any) {
         console.log(e);
         return res.status(400).json({
           code: 400,
@@ -45,7 +46,7 @@ const handleResponse = async (options, req, res) => {
   }
 };
 
-const findOrCreateUser = async (req, res) => {
+export const findOrCreateUser = async (req: Request, res: Response) => {
   await handleResponse(
     {
       handler: registerOrRetrieveUser,
@@ -56,8 +57,4 @@ const findOrCreateUser = async (req, res) => {
     req,
     res
   );
-};
-
-module.exports = {
-  findOrCreateUser,
 };
