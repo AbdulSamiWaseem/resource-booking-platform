@@ -1,13 +1,14 @@
-const { createResponseObject, RENDER_BAD_REQUEST } = require("./constants");
+import { Request, Response } from "express";
+import { createResponseObject, RENDER_BAD_REQUEST } from "./constants";
 
-const handleResponse = async (options, req, res) => {
+export const handleResponse = async (options: any, req: Request, res: Response) => {
   try {
     const { handler, validationFn, handlerParams, successMessage } = options;
 
     if (validationFn) {
       try {
         await validationFn(req.body);
-      } catch (e) {
+      } catch (e: any) {
         console.log(e);
         return res.status(400).json({
           code: 400,
@@ -41,8 +42,4 @@ const handleResponse = async (options, req, res) => {
   } catch (e) {
     RENDER_BAD_REQUEST(res, e);
   }
-};
-
-module.exports = {
-  handleResponse,
 };

@@ -1,6 +1,6 @@
-const { createResource } = require("../dal/resourceDal");
+import { createResource } from "../dal/resourceDal";
 
-const addResource = async (body, resp) => {
+export const addResource = async (body: { name: string; description: string }, resp: any) => {
   const { name, description } = body;
 
   const newResource = await createResource({ name, description });
@@ -11,8 +11,4 @@ const addResource = async (body, resp) => {
   };
 
   return resp;
-};
-
-module.exports = {
-  addResource,
 };
