@@ -7,6 +7,13 @@ const createResource = async (data) => {
   });
 };
 
+const getAllResourcesList = async () => {
+  return await prisma.resource.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 module.exports = {
   createResource,
+  getAllResourcesList,
 };

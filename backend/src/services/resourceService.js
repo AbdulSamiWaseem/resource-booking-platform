@@ -1,4 +1,4 @@
-const { createResource } = require("../dal/resourceDal");
+const { createResource, getAllResourcesList } = require("../dal/resourceDal");
 
 const addResource = async (body, resp) => {
   const { name, description } = body;
@@ -13,6 +13,16 @@ const addResource = async (body, resp) => {
   return resp;
 };
 
+const getAllResources = async (resp) => {
+  const resources = await getAllResourcesList();
+  resp.success_message = "Resources retrieved successfully";
+  resp.data = {
+    resources,
+  };
+  return resp;
+};
+
 module.exports = {
   addResource,
+  getAllResources,
 };

@@ -1,4 +1,4 @@
-const { addResource } = require("../services/resourceService");
+const { addResource, getAllResources } = require("../services/resourceService");
 const { handleResponse } = require("../utils/responseHandler");
 const { validateResource } = require("../validation/resource");
 
@@ -15,6 +15,19 @@ const createResource = async (req, res) => {
   );
 };
 
+const listResources = async (req, res) => {
+  await handleResponse(
+    {
+      handler: getAllResources,
+      handlerParams: [],
+      successMessage: "Resources retrieved successfully!",
+    },
+    req,
+    res
+  );
+};
+
 module.exports = {
   createResource,
+  listResources,
 };
