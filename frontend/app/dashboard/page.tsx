@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { getRequest } from "../services/apiCalls";
@@ -16,10 +16,17 @@ export default function Dashboard() {
   const router = useRouter();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    fetchResources();
-  }, []);
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      router.replace("/login");
+    } else {
+      setCheckingAuth(false);
+      fetchResources();
+    }
+  }, [router]);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -34,6 +41,20 @@ export default function Dashboard() {
     await getRequest("resources", onSuccess, onError);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    toast.success("Successfully logged out.");
+    router.replace("/login");
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4 bg-white">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
@@ -44,6 +65,12 @@ export default function Dashboard() {
             className="text-sm bg-blue-500 text-white px-3 py-1.5 rounded cursor-pointer"
           >
             Create Resource
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-sm bg-gray-500 text-white px-3 py-1.5 rounded cursor-pointer"
+          >
+            Logout
           </button>
         </div>
       </div>
