@@ -32,7 +32,7 @@ export default function CreateResource() {
       toast.error(err?.message || "An error occurred.");
     };
 
-    await postRequest({ name, description }, "resources/create-resource", onSuccess, onError);
+    await postRequest({ name, description }, "resources/", onSuccess, onError);
   };
 
   return (
