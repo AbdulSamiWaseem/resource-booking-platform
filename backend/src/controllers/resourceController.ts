@@ -1,8 +1,9 @@
-const { addResource, getAllResources } = require("../services/resourceService");
-const { handleResponse } = require("../utils/responseHandler");
-const { validateResource } = require("../validation/resource");
+import { Request, Response } from "express";
+import { addResource, getAllResources } from "../services/resourceService";
+import { handleResponse } from "../utils/responseHandler";
+import { validateResource } from "../validation/resource";
 
-const createResource = async (req, res) => {
+export const createResource = async (req: Request, res: Response) => {
   await handleResponse(
     {
       handler: addResource,
@@ -15,7 +16,7 @@ const createResource = async (req, res) => {
   );
 };
 
-const listResources = async (req, res) => {
+export const listResources = async (req: Request, res: Response) => {
   await handleResponse(
     {
       handler: getAllResources,
@@ -25,9 +26,4 @@ const listResources = async (req, res) => {
     req,
     res
   );
-};
-
-module.exports = {
-  createResource,
-  listResources,
 };

@@ -1,6 +1,9 @@
-const { findUserByEmail, createUser } = require("../dal/userDal");
+import { findUserByEmail, createUser } from "../dal/userDal";
 
-const registerOrRetrieveUser = async (body, resp) => {
+export const registerOrRetrieveUser = async (
+  body: { name: string; email: string },
+  resp: any
+) => {
   const { name, email } = body;
 
   if (!name || !email) {
@@ -31,8 +34,4 @@ const registerOrRetrieveUser = async (body, resp) => {
     isNew: true,
   };
   return resp;
-};
-
-module.exports = {
-  registerOrRetrieveUser,
 };
