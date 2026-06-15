@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
-import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { getRequest } from "../../../services/apiCalls";
 
@@ -44,8 +43,7 @@ export default function ResourceDetailPage() {
     }
   }, [resourceId]);
 
-  const dateCellRender = (value: Dayjs) => {
-    console.log('value', value)
+  const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;
 
     const bookings = resource.bookings.filter((booking: any) =>
