@@ -8,6 +8,12 @@ export const createResource = async (data: { name: string; description: string }
   });
 };
 
+export const findResourceById = async (id: number) => {
+  return await prisma.resource.findUnique({
+    where: { id },
+  });
+};
+
 export const getAllResourcesList = async () => {
   return await prisma.resource.findMany({
     orderBy: { createdAt: "desc" },
