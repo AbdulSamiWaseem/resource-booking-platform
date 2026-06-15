@@ -39,7 +39,7 @@ export const addBooking = async (
   const overlap = await checkOverlap(resourceId, start, end);
   if (overlap) {
     resp.error = true;
-    resp.error_message = "Booking already exist for this resource";
+    resp.error_message = "Booking already exist for this resource in this timeslot";
     return resp;
   }
 
