@@ -11,6 +11,17 @@ export const addBooking = async (
   const start = new Date(startTime);
   const end = new Date(endTime);
 
+  const isSameDay =
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate();
+
+  if (!isSameDay) {
+    resp.error = true;
+    resp.error_message = "Booking start time and end time must be on the same day";
+    return resp;
+  }
+
   const user = await findUserById(userId);
   if (!user) {
     resp.error = true;
