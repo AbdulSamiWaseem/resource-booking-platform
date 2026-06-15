@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest } from "../../../services/apiCalls";
+import { getRequest, postRequest } from "../../../services/apiCalls";
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -14,6 +14,49 @@ export default function ResourceDetailPage() {
 
   const [resource, setResource] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingStartTime, setBookingStartTime] = useState("");
+  const [bookingEndTime, setBookingEndTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const storedUser = localStorage.getItem("user");
+    const user = JSON.parse(storedUser || "{}");
+    const start = dayjs(`${bookingDate} ${bookingStartTime}`);
+    const end = dayjs(`${bookingDate} ${bookingEndTime}`);
+
+    if (!end.isAfter(start)) {
+      toast.error("Start time must be before end time.");
+      return;
+    }
+    setSubmitting(true);
+
+    const payload = {
+      resourceId,
+      userId: user.user.id,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    };
+
+    const onSuccess = (res: any) => {
+      toast.success("Booking created successfully!");
+      setIsBookingModalVisible(false);
+      setBookingDate("");
+      setBookingStartTime("");
+      setBookingEndTime("");
+      fetchResourceDetails();
+      setSubmitting(false);
+    };
+
+    const onError = (err: any) => {
+      toast.error(err?.message || "Failed to create booking.");
+      setSubmitting(false);
+    };
+
+    await postRequest(payload, 'bookings', onSuccess, onError);
+  };
 
   const fetchResourceDetails = async () => {
     setLoading(true);
@@ -80,18 +123,83 @@ export default function ResourceDetailPage() {
           <h1 className="text-2xl font-bold">{resource.name}</h1>
           <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
         </div>
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="text-sm bg-gray-200 px-4 py-2 rounded cursor-pointer"
-        >
-          Back to Dashboard
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setIsBookingModalVisible(true)}
+            className="text-sm bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">
+            Create Booking
+          </button>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="text-sm bg-gray-200 px-4 py-2 rounded cursor-pointer"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
 
       <div className="border border-gray-200 rounded-lg p-4 mt-6">
         <div className="text-lg font-semibold mb-4">Resource Booking Schedule</div>
         <Calendar dateCellRender={dateCellRender} />
       </div>
+
+      {isBookingModalVisible && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h3 className="text-lg font-bold mb-4">Create Booking</h3>
+            <form onSubmit={handleBookingSubmit} className="space-y-4">
+              <div>
+                <div className="text-sm font-semibold" >Date</div>
+                <input
+                  type="date"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-semibold" >Start Time</div>
+                  <input
+                    type="time"
+                    value={bookingStartTime}
+                    onChange={(e) => setBookingStartTime(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold" >End Time</div>
+                  <input
+                    type="time"
+                    value={bookingEndTime}
+                    onChange={(e) => setBookingEndTime(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsBookingModalVisible(false)}
+                  className="px-4 py-2 bg-gray-200 rounded text-sm cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
+                >
+                  {submitting ? "Booking..." : "Book Resource"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
