@@ -1,4 +1,4 @@
-import { createBooking, checkOverlap } from "../dal/bookingDal";
+import { createBooking, checkOverlap, getBookingsList } from "../dal/bookingDal";
 import { findUserById } from "../dal/userDal";
 import { findResourceById } from "../dal/resourceDal";
 
@@ -46,3 +46,16 @@ export const addBooking = async (
 
   return resp;
 };
+
+export const getBookings = async (resp: any) => {
+  const bookings = await getBookingsList();
+
+  resp.success_message = "Bookings retrieved successfully";
+  resp.data = {
+    bookings,
+  };
+
+  return resp;
+};
+
+

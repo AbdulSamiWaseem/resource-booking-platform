@@ -34,3 +34,15 @@ export const checkOverlap = async (
     },
   });
 };
+
+export const getBookingsList = async () => {
+  return await prisma.booking.findMany({
+    include: {
+      resource: true,
+      user: true,
+    },
+    orderBy: { startTime: "asc" },
+  });
+};
+
+
