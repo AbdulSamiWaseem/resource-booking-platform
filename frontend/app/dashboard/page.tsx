@@ -72,6 +72,7 @@ export default function Dashboard() {
             <div
               key={resource.id}
               className="p-4 border border-gray-300 rounded flex flex-col gap-1"
+              onClick={() => router.push(`/dashboard/resource/${resource.id}`)}
             >
               <h3 className="font-bold">{resource.name}</h3>
               <p className="text-sm text-gray-500">{resource.description}</p>
