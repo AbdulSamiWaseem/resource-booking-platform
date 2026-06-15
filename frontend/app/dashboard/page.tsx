@@ -71,7 +71,7 @@ export default function Dashboard() {
           {resources.map((resource) => (
             <div
               key={resource.id}
-              className="p-4 border border-gray-300 rounded flex flex-col gap-1"
+              className="p-4 border border-gray-300 rounded flex flex-col gap-1 hover:scale-101 cursor-pointer transition"
               onClick={() => router.push(`/dashboard/resource/${resource.id}`)}
             >
               <h3 className="font-bold">{resource.name}</h3>
