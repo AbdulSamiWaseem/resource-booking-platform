@@ -16,17 +16,10 @@ export default function Dashboard() {
   const router = useRouter();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.replace("/login");
-    } else {
-      setCheckingAuth(false);
-      fetchResources();
-    }
-  }, [router]);
+    fetchResources();
+  }, []);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -47,13 +40,6 @@ export default function Dashboard() {
     router.replace("/login");
   };
 
-  if (checkingAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4 bg-white">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">
