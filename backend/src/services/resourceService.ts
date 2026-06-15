@@ -1,4 +1,4 @@
-import { createResource, getAllResourcesList } from "../dal/resourceDal";
+import { createResource, getAllResourcesList, findResourceById } from "../dal/resourceDal";
 
 export const addResource = async (body: { name: string; description: string }, resp: any) => {
   const { name, description } = body;
@@ -21,3 +21,18 @@ export const getAllResources = async (resp: any) => {
   };
   return resp;
 };
+
+export const getResourceDetailsById = async (id: number, resp: any) => {
+  const resource = await findResourceById(id);
+  if (!resource) {
+    resp.error = true;
+    resp.error_message = "Resource not found";
+    return resp;
+  }
+  resp.success_message = "Resource Details fetched successfully";
+  resp.data = {
+    resource,
+  };
+  return resp;
+};
+

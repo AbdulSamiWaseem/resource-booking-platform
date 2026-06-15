@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addResource, getAllResources } from "../services/resourceService";
+import { addResource, getAllResources, getResourceDetailsById } from "../services/resourceService";
 import { handleResponse } from "../utils/responseHandler";
 import { validateResource } from "../validation/resource";
 
@@ -27,3 +27,17 @@ export const listResources = async (req: Request, res: Response) => {
     res
   );
 };
+
+export const getResourceById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  await handleResponse(
+    {
+      handler: getResourceDetailsById,
+      handlerParams: [Number(id)],
+      successMessage: "Resource details retrieved successfully!",
+    },
+    req,
+    res
+  );
+};
+
