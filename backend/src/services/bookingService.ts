@@ -1,4 +1,4 @@
-import { createBooking, checkOverlap, getBookingsList } from "../dal/bookingDal";
+import { createBooking, checkOverlap, getBookingsList, findBookingById, deleteBookingById } from "../dal/bookingDal";
 import { findUserById } from "../dal/userDal";
 import { findResourceById } from "../dal/resourceDal";
 
@@ -74,5 +74,18 @@ export const getBookings = async (resp: any) => {
 
   return resp;
 };
+
+export const removeBookingById = async (id: number, resp: any) => {
+  const booking = await findBookingById(id);
+  if (!booking) {
+    resp.error = true;
+    resp.error_message = "Booking not found";
+    return resp;
+  }
+  await deleteBookingById(id);
+  resp.success_message = "Booking cancelled successfully";
+  return resp;
+};
+
 
 
