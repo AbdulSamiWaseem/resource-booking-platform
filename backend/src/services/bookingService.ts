@@ -22,6 +22,12 @@ export const addBooking = async (
     return resp;
   }
 
+  if (start < new Date()) {
+    resp.error = true;
+    resp.error_message = "Booking cannot be created in the past";
+    return resp;
+  }
+
   const user = await findUserById(userId);
   if (!user) {
     resp.error = true;
