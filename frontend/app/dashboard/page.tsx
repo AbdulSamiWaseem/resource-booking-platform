@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { getRequest } from "../services/apiCalls";
+import { getRequest, deleteRequest } from "../services/apiCalls";
 
 interface Resource {
   id: number;
@@ -40,6 +40,20 @@ export default function Dashboard() {
     router.replace("/login");
   };
 
+  const handleDeleteResource = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this resource?")) {
+      return;
+    }
+    const onSuccess = (res: any) => {
+      toast.success("Resource deleted successfully!");
+      fetchResources();
+    };
+    const onError = (err: any) => {
+      toast.error(err?.message || "Failed to delete resource.");
+    };
+    await deleteRequest(`resources/${id}`, onSuccess, onError);
+  };
+
 
   return (
     <div className="p-6">
@@ -71,11 +85,22 @@ export default function Dashboard() {
           {resources.map((resource) => (
             <div
               key={resource.id}
-              className="p-4 border border-gray-300 rounded flex flex-col gap-1 hover:scale-101 cursor-pointer transition"
+              className="p-4 border border-gray-300 rounded flex justify-between items-center hover:scale-[1.01] cursor-pointer transition"
               onClick={() => router.push(`/dashboard/resource/${resource.id}`)}
             >
-              <h3 className="font-bold">{resource.name}</h3>
-              <p className="text-sm text-gray-500">{resource.description}</p>
+              <div className="flex flex-col gap-1">
+                <h3 className="font-bold">{resource.name}</h3>
+                <p className="text-sm text-gray-500">{resource.description}</p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteResource(resource.id);
+                }}
+                className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>
