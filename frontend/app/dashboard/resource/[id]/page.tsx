@@ -109,6 +109,11 @@ export default function ResourceDetailPage() {
     );
   };
 
+  const cellRender = (current: any, info: any) => {
+    if (info.type === "date") return dateCellRender(current);
+    return info.originNode;
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -140,7 +145,7 @@ export default function ResourceDetailPage() {
 
       <div className="border border-gray-200 rounded-lg p-4 mt-6">
         <div className="text-lg font-semibold mb-4">Resource Booking Schedule</div>
-        <Calendar dateCellRender={dateCellRender} />
+        <Calendar cellRender={cellRender} />
       </div>
 
       {isBookingModalVisible && (
