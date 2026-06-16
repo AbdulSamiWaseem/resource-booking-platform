@@ -30,10 +30,11 @@ export const listBookings = async (req: Request, res: Response) => {
 
 export const deleteBooking = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { userId } = req.body;
   await handleResponse(
     {
       handler: removeBookingById,
-      handlerParams: [Number(id)],
+      handlerParams: [Number(id), Number(userId)],
       successMessage: "Booking cancelled successfully!",
     },
     req,

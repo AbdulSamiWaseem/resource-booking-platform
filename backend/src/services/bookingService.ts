@@ -75,11 +75,21 @@ export const getBookings = async (resp: any) => {
   return resp;
 };
 
-export const removeBookingById = async (id: number, resp: any) => {
+export const removeBookingById = async (id: number, userId: number, resp: any) => {
+  if (!userId) {
+    resp.error = true;
+    resp.error_message = "User ID is required";
+    return resp;
+  }
   const booking = await findBookingById(id);
   if (!booking) {
     resp.error = true;
     resp.error_message = "Booking not found";
+    return resp;
+  }
+  if (booking.userId !== userId) {
+    resp.error = true;
+    resp.error_message = "You cannot cancel this booking";
     return resp;
   }
   await deleteBookingById(id);

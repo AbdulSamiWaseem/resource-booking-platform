@@ -90,6 +90,15 @@ export default function ResourceDetailPage() {
     if (!window.confirm("Are you sure you want to cancel this booking?")) {
       return;
     }
+    const storedUser = localStorage.getItem("user");
+    const user = JSON.parse(storedUser || "{}");
+    const userId = user.user?.id;
+
+    if (!userId) {
+      toast.error("User not found. Please log in again.");
+      return;
+    }
+    const payload = { userId };
     const onSuccess = (res: any) => {
       toast.success("Booking cancelled successfully!");
       fetchResourceDetails();
@@ -97,7 +106,7 @@ export default function ResourceDetailPage() {
     const onError = (err: any) => {
       toast.error(err?.message || "Failed to cancel booking.");
     };
-    await deleteRequest(`bookings/${bookingId}`, onSuccess, onError);
+    await deleteRequest(payload, `bookings/${bookingId}`, onSuccess, onError);
   };
   const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;

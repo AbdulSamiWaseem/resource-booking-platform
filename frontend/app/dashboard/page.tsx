@@ -58,7 +58,7 @@ export default function Dashboard() {
     const onError = (err: any) => {
       toast.error(err?.message || "Failed to delete resource.");
     };
-    await deleteRequest(`resources/${id}`, onSuccess, onError);
+    await deleteRequest(null, `resources/${id}`, onSuccess, onError);
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
