@@ -99,13 +99,20 @@ export default function ResourceDetailPage() {
           const startTime = dayjs(booking.startTime).format("hh:mm A");
           const endTime = dayjs(booking.endTime).format("hh:mm A");
           return (
-            <div key={booking.id} className="text-xs mb-1 border border-gray-200 rounded px-1 py-0.5">
-              <div className="font-semibold">{startTime} - {endTime}</div>
-              <div className="text-xs text-gray-500">By: {booking.user.name}</div>
+            <div className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
+              <div key={booking.id} className="">
+                <div className="font-semibold text-nowrap">{startTime} - {endTime}</div>
+                <div className="text-gray-500">By: {booking.user.name}</div>
+              </div>
+              <button
+                className="bg-red-500 text-white p-1 rounded cursor-pointer hover:bg-red-600">
+                Cancel
+              </button>
             </div>
           );
-        })}
-      </div>
+        })
+        }
+      </div >
     );
   };
 
