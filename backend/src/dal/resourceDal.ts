@@ -38,3 +38,11 @@ export const deleteResource = async (id: number) => {
   ]);
 };
 
+export const updateResource = async (id: number, data: { name: string; description: string }) => {
+  return await prisma.resource.update({
+    where: { id },
+    data,
+  });
+};
+
+

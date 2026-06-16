@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addResource, getAllResources, getResourceDetailsById, deleteResourceById } from "../services/resourceService";
+import { addResource, getAllResources, getResourceDetailsById, deleteResourceById, editResourceById } from "../services/resourceService";
 import { handleResponse } from "../utils/responseHandler";
 import { validateResource } from "../validation/resource";
 
@@ -53,5 +53,20 @@ export const removeResource = async (req: Request, res: Response) => {
     res
   );
 };
+
+export const editResource = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  await handleResponse(
+    {
+      handler: editResourceById,
+      validationFn: validateResource,
+      handlerParams: [Number(id), req.body],
+      successMessage: "Resource updated successfully!",
+    },
+    req,
+    res
+  );
+};
+
 
 
