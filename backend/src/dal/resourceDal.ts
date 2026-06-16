@@ -26,3 +26,15 @@ export const getAllResourcesList = async () => {
     orderBy: { createdAt: "desc" },
   });
 };
+
+export const deleteResource = async (id: number) => {
+  return await prisma.$transaction([
+    prisma.booking.deleteMany({
+      where: { resourceId: id },
+    }),
+    prisma.resource.delete({
+      where: { id },
+    }),
+  ]);
+};
+
