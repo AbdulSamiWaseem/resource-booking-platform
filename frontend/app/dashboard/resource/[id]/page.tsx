@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest, postRequest } from "../../../services/apiCalls";
+import { getRequest, postRequest, deleteRequest } from "../../../services/apiCalls";
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -86,6 +86,19 @@ export default function ResourceDetailPage() {
     }
   }, [resourceId]);
 
+  const cancelBooking = async (bookingId: number) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) {
+      return;
+    }
+    const onSuccess = (res: any) => {
+      toast.success("Booking cancelled successfully!");
+      fetchResourceDetails();
+    };
+    const onError = (err: any) => {
+      toast.error(err?.message || "Failed to cancel booking.");
+    };
+    await deleteRequest(`bookings/${bookingId}`, onSuccess, onError);
+  };
   const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;
 
@@ -105,6 +118,7 @@ export default function ResourceDetailPage() {
                 <div className="text-gray-500">By: {booking.user.name}</div>
               </div>
               <button
+                onClick={() => cancelBooking(booking.id)}
                 className="bg-red-500 text-white p-1 rounded cursor-pointer hover:bg-red-600">
                 Cancel
               </button>
