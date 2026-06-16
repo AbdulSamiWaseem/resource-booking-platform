@@ -19,11 +19,10 @@ export default function ResourceDetailPage() {
   const [bookingStartTime, setBookingStartTime] = useState("");
   const [bookingEndTime, setBookingEndTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedUser = localStorage.getItem("user");
-    const user = JSON.parse(storedUser || "{}");
     const start = dayjs(`${bookingDate} ${bookingStartTime}`);
     const end = dayjs(`${bookingDate} ${bookingEndTime}`);
 
@@ -35,7 +34,7 @@ export default function ResourceDetailPage() {
 
     const payload = {
       resourceId,
-      userId: user.user.id,
+      userId,
       startTime: start.toISOString(),
       endTime: end.toISOString(),
     };
@@ -81,6 +80,11 @@ export default function ResourceDetailPage() {
 
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const parsedUser = JSON.parse(storedUser || "{}");
+    if (parsedUser.user?.id) {
+      setUserId(parsedUser.user.id);
+    }
     if (resourceId) {
       fetchResourceDetails();
     }
@@ -90,10 +94,6 @@ export default function ResourceDetailPage() {
     if (!window.confirm("Are you sure you want to cancel this booking?")) {
       return;
     }
-    const storedUser = localStorage.getItem("user");
-    const user = JSON.parse(storedUser || "{}");
-    const userId = user.user?.id;
-
     if (!userId) {
       toast.error("User not found. Please log in again.");
       return;
@@ -120,15 +120,21 @@ export default function ResourceDetailPage() {
         {bookings.map((booking: any) => {
           const startTime = dayjs(booking.startTime).format("hh:mm A");
           const endTime = dayjs(booking.endTime).format("hh:mm A");
+          const isOwner = booking.userId === userId;
           return (
-            <div className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
-              <div key={booking.id} className="">
+            <div key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
+              <div>
                 <div className="font-semibold text-nowrap">{startTime} - {endTime}</div>
                 <div className="text-gray-500">By: {booking.user.name}</div>
               </div>
               <button
+                disabled={!isOwner}
                 onClick={() => cancelBooking(booking.id)}
-                className="bg-red-500 text-white p-1 rounded cursor-pointer hover:bg-red-600">
+                className={`p-1 rounded text-white ${isOwner
+                  ? "bg-red-500 hover:bg-red-600 cursor-pointer"
+                  : "bg-red-500 cursor-not-allowed opacity-50"
+                  }`}
+              >
                 Cancel
               </button>
             </div>
