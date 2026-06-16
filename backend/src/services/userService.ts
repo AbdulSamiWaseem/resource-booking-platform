@@ -19,7 +19,7 @@ export const registerOrRetrieveUser = async (
       resp.error_message = "Name does not match the registered name for this email";
       return resp;
     }
-    resp.success_message = "User already exists";
+    resp.success_message = "User verified successfully";
     resp.data = {
       user: existingUser,
       isNew: false,

@@ -14,7 +14,7 @@ const apiCall = async (
     const config: any = {
       method,
       url,
-      data: payload,
+      ...(method.toLowerCase() === 'get' ? {} : { data: payload }),
     };
 
     const response = await axios.request(config);
@@ -43,4 +43,12 @@ export const postRequest = (
   onError: (error: any) => void = () => { },
 ) => {
   return apiCall('post', payload, route, onSuccess, onError);
+};
+
+export const getRequest = (
+  route: string,
+  onSuccess: (data: any) => void = () => { },
+  onError: (error: any) => void = () => { },
+) => {
+  return apiCall('get', null, route, onSuccess, onError);
 };
