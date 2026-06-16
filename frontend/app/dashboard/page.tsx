@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     fetchResources();
@@ -86,6 +87,9 @@ export default function Dashboard() {
     await putRequest(payload, `resources/${editingResourceId}`, onSuccess, onError);
   };
 
+  const filteredResources = resources.filter((resource) =>
+    resource.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   return (
     <div className="p-6">
@@ -106,15 +110,17 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-
-      <h2 className="text-lg font-semibold mb-4">Resources</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-semibold">Resources</h2>
+        <input className="px-4 py-2 border border-gray-300 rounded text-sm outline-none min-w-72" type="text" placeholder="Search resources..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+      </div>
       {loading ? (
         <p className="text-sm text-gray-500">Loading resources...</p>
-      ) : resources.length === 0 ? (
+      ) : filteredResources.length === 0 ? (
         <p className="text-sm text-gray-500">No resources available.</p>
       ) : (
         <div className="space-y-4">
-          {resources.map((resource) => (
+          {filteredResources.map((resource) => (
             <div
               key={resource.id}
               className="p-4 border border-gray-300 rounded flex justify-between items-center hover:scale-[1.01] cursor-pointer transition"
