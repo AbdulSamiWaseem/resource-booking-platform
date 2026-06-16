@@ -123,12 +123,12 @@ export default function ResourceDetailPage() {
   }
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-        <div>
+      <div className="flex justify-between items-start pb-4 border-b border-gray-200">
+        <div className="flex flex-col">
           <h1 className="text-2xl font-bold">{resource.name}</h1>
           <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 min-w-80 mt-1">
           <button
             onClick={() => setIsBookingModalVisible(true)}
             className="text-sm bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">
