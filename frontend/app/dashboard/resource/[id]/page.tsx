@@ -165,8 +165,8 @@ export default function ResourceDetailPage() {
     <div className="p-6">
       <div className="flex justify-between items-start pb-4 border-b border-gray-200">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">{resource.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
+          <h1 className="text-2xl font-bold">{resource?.name}</h1>
+          <p className="text-sm text-gray-500 mt-1">{resource?.description}</p>
         </div>
         <div className="flex gap-4 min-w-80 mt-1">
           <button
