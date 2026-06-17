@@ -6,6 +6,13 @@ import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
 import { getRequest, postRequest, deleteRequest } from "../../../services/apiCalls";
+import { useForm } from "react-hook-form";
+
+interface BookingInputs {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -15,16 +22,15 @@ export default function ResourceDetailPage() {
   const [resource, setResource] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
-  const [bookingDate, setBookingDate] = useState("");
-  const [bookingStartTime, setBookingStartTime] = useState("");
-  const [bookingEndTime, setBookingEndTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
 
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const start = dayjs(`${bookingDate} ${bookingStartTime}`);
-    const end = dayjs(`${bookingDate} ${bookingEndTime}`);
+  const { register, handleSubmit, formState, reset } = useForm<BookingInputs>();
+  const { errors } = formState;
+
+  const handleBookingSubmit = async (data: BookingInputs) => {
+    const start = dayjs(`${data.date} ${data.startTime}`);
+    const end = dayjs(`${data.date} ${data.endTime}`);
 
     if (!end.isAfter(start)) {
       toast.error("Start time must be before end time.");
@@ -42,9 +48,7 @@ export default function ResourceDetailPage() {
     const onSuccess = (res: any) => {
       toast.success("Booking created successfully!");
       setIsBookingModalVisible(false);
-      setBookingDate("");
-      setBookingStartTime("");
-      setBookingEndTime("");
+      reset();
       fetchResourceDetails();
       setSubmitting(false);
     };
@@ -188,37 +192,40 @@ export default function ResourceDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Create Booking</h3>
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(handleBookingSubmit)} noValidate className="space-y-4">
               <div>
                 <div className="text-sm font-semibold" >Date</div>
                 <input
                   type="date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
+                  {...register("date", { required: "Date is required" })}
                   className="w-full p-2 border border-gray-300 rounded"
-                  required
                 />
+                {errors.date && (
+                  <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-semibold" >Start Time</div>
                   <input
                     type="time"
-                    value={bookingStartTime}
-                    onChange={(e) => setBookingStartTime(e.target.value)}
+                    {...register("startTime", { required: "Start time is required" })}
                     className="w-full p-2 border border-gray-300 rounded"
-                    required
                   />
+                  {errors.startTime && (
+                    <p className="text-red-500 text-xs mt-1">{errors.startTime.message}</p>
+                  )}
                 </div>
                 <div>
                   <div className="text-sm font-semibold" >End Time</div>
                   <input
                     type="time"
-                    value={bookingEndTime}
-                    onChange={(e) => setBookingEndTime(e.target.value)}
+                    {...register("endTime", { required: "End time is required" })}
                     className="w-full p-2 border border-gray-300 rounded"
-                    required
                   />
+                  {errors.endTime && (
+                    <p className="text-red-500 text-xs mt-1">{errors.endTime.message}</p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-3 justify-end pt-4">
