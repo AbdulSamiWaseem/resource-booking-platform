@@ -4,12 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { getRequest, deleteRequest, putRequest } from "../services/apiCalls";
+import { useForm } from "react-hook-form";
 
 interface Resource {
   id: number;
   name: string;
   description: string;
   createdAt: string;
+}
+
+interface ResourceInputs {
+  name: string;
+  description: string;
 }
 
 export default function Dashboard() {
@@ -19,10 +25,11 @@ export default function Dashboard() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
   const [updating, setUpdating] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+
+  const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>();
+  const { errors } = formState;
 
   useEffect(() => {
     fetchResources();
@@ -61,14 +68,13 @@ export default function Dashboard() {
     await deleteRequest(null, `resources/${id}`, onSuccess, onError);
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditSubmit = async (data: ResourceInputs) => {
     if (!editingResourceId) return;
     setUpdating(true);
 
     const payload = {
-      name: editName,
-      description: editDescription,
+      name: data.name,
+      description: data.description,
     };
 
     const onSuccess = (res: any) => {
@@ -77,6 +83,7 @@ export default function Dashboard() {
       setEditingResourceId(null);
       fetchResources();
       setUpdating(false);
+      reset();
     };
 
     const onError = (err: any) => {
@@ -135,8 +142,8 @@ export default function Dashboard() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setEditingResourceId(resource.id);
-                    setEditName(resource.name);
-                    setEditDescription(resource.description);
+                    setValue("name", resource.name);
+                    setValue("description", resource.description);
                     setIsEditModalVisible(true);
                   }}
                   className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
@@ -161,25 +168,27 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Edit Resource</h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(handleEditSubmit)} noValidate className="space-y-4">
               <div>
                 <div className="text-sm font-semibold">Name</div>
                 <input
                   type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  {...register("name", { required: "Name is required" })}
                   className="w-full p-2 border border-gray-300 rounded"
-                  required
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                )}
               </div>
               <div>
                 <div className="text-sm font-semibold">Description</div>
                 <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
+                  {...register("description", { required: "Description is required" })}
                   className="w-full p-2 border border-gray-300 rounded h-32"
-                  required
                 />
+                {errors.description && (
+                  <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
+                )}
               </div>
               <div className="flex gap-3 justify-end pt-4">
                 <button
@@ -187,6 +196,7 @@ export default function Dashboard() {
                   onClick={() => {
                     setIsEditModalVisible(false);
                     setEditingResourceId(null);
+                    reset();
                   }}
                   className="px-4 py-2 bg-gray-200 rounded text-sm cursor-pointer"
                 >

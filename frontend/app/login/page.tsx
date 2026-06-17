@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 
-type LoginInput = {
+interface LoginInput {
   name: string;
   email: string;
 }
