@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { getRequest, deleteRequest, putRequest } from "../services/apiCalls";
+import { deleteRequest, putRequest, getRequestUpdated } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Resource {
   id: number;
@@ -20,8 +21,7 @@ interface ResourceInputs {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
@@ -31,22 +31,18 @@ export default function Dashboard() {
   const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>();
   const { errors } = formState;
 
-  useEffect(() => {
-    fetchResources();
-  }, []);
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ["resources"],
+    queryFn: () => getRequestUpdated("resources"),
+  });
 
-  const fetchResources = async () => {
-    setLoading(true);
-    const onSuccess = (res: any) => {
-      setResources(res?.data?.resources || []);
-      setLoading(false);
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to load resources.");
-      setLoading(false);
-    };
-    await getRequest("resources", onSuccess, onError);
-  };
+  const resources: Resource[] = data?.resources || [];
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "Failed to load resources.");
+    }
+  }, [error]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -60,7 +56,7 @@ export default function Dashboard() {
     }
     const onSuccess = (res: any) => {
       toast.success("Resource deleted successfully!");
-      fetchResources();
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
     };
     const onError = (err: any) => {
       toast.error(err?.message || "Failed to delete resource.");
@@ -81,7 +77,7 @@ export default function Dashboard() {
       toast.success("Resource updated successfully!");
       setIsEditModalVisible(false);
       setEditingResourceId(null);
-      fetchResources();
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
       setUpdating(false);
       reset();
     };

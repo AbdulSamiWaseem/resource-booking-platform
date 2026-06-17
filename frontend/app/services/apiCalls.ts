@@ -71,4 +71,10 @@ export const putRequest = (
   return apiCall('put', payload, route, onSuccess, onError);
 };
 
+export const getRequestUpdated = async (route: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const res = await axios.get(`${baseUrl}${route}`);
+  return res.data.data;
+};
+
 
