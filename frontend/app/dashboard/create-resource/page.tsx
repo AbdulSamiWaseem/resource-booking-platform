@@ -1,27 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { postRequest } from "../../services/apiCalls";
+import { useForm } from "react-hook-form";
+
+interface ResourceInputs {
+  name: string;
+  description: string;
+}
 
 export default function CreateResource() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const { register, handleSubmit, formState } = useForm<ResourceInputs>();
+  const { errors } = formState;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name) {
-      toast.error("Please enter a resource name.");
-      return;
-    }
-
-    if (!description) {
-      toast.error("Please enter a description.");
-      return;
-    }
+  const handleOnSubmit = async (data: ResourceInputs) => {
+    const { name, description } = data;
 
     const onSuccess = (res: any) => {
       toast.success(res?.message || "Resource created successfully!");
@@ -47,27 +42,31 @@ export default function CreateResource() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(handleOnSubmit)} noValidate className="space-y-4">
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold">Resource Name</div>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            {...register("name", { required: "Resource name is required" })}
             placeholder="e.g. Meeting Room"
             className="w-full p-2 border border-gray-300 rounded"
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs">{errors.name.message}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold">Description</div>
           <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            {...register("description", { required: "Description is required" })}
             placeholder="Describe the resource..."
             rows={3}
             className="w-full p-2 border border-gray-300 rounded"
           />
+          {errors.description && (
+            <p className="text-red-500 text-xs">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="flex gap-4 pt-2">
