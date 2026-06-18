@@ -31,7 +31,6 @@ export default function Login() {
 
   const handleOnSubmit = async (data: LoginInput) => {
     const { name, email } = data;
-    console.log(data);
     const onSuccess = (res: any) => {
       toast.success(res?.message || "Successful!");
       if (res?.data) {
