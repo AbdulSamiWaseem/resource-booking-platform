@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { putRequest, getApi, deleteApi } from "../services/apiCalls";
+import { putApi, getApi, deleteApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -25,7 +25,6 @@ export default function Dashboard() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
-  const [updating, setUpdating] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
   const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>();
@@ -61,6 +60,21 @@ export default function Dashboard() {
     },
   });
 
+  const editMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: ResourceInputs }) =>
+      putApi(`resources/${id}`, payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Resource updated successfully!");
+      setIsEditModalVisible(false);
+      setEditingResourceId(null);
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      reset();
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to update resource.");
+    },
+  });
+
   const handleDeleteResource = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this resource?")) {
       return;
@@ -70,28 +84,13 @@ export default function Dashboard() {
 
   const handleEditSubmit = async (data: ResourceInputs) => {
     if (!editingResourceId) return;
-    setUpdating(true);
-
-    const payload = {
-      name: data.name,
-      description: data.description,
-    };
-
-    const onSuccess = (res: any) => {
-      toast.success("Resource updated successfully!");
-      setIsEditModalVisible(false);
-      setEditingResourceId(null);
-      queryClient.invalidateQueries({ queryKey: ["resources"] });
-      setUpdating(false);
-      reset();
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to update resource.");
-      setUpdating(false);
-    };
-
-    await putRequest(payload, `resources/${editingResourceId}`, onSuccess, onError);
+    editMutation.mutate({
+      id: editingResourceId,
+      payload: {
+        name: data.name,
+        description: data.description,
+      },
+    });
   };
 
   const filteredResources = resources.filter((resource) =>
@@ -207,10 +206,10 @@ export default function Dashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={updating}
-                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
+                  disabled={editMutation.isPending}
+                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer disabled:opacity-50"
                 >
-                  {"Update Resource"}
+                  {editMutation.isPending ? "Updating..." : "Update Resource"}
                 </button>
               </div>
             </form>

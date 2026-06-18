@@ -89,4 +89,11 @@ export const deleteApi = async (route: string, payload?: any) => {
   return res.data;
 };
 
+export const putApi = async (route: string, payload: any) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const res = await axios.put(`${baseUrl}${route}`, payload);
+  return res.data;
+};
+
+
 
