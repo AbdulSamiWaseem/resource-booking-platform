@@ -1,10 +1,11 @@
 import { createBooking, checkOverlap, getBookingsList, findBookingById, deleteBookingById } from "../dal/bookingDal";
 import { findUserById } from "../dal/userDal";
 import { findResourceById } from "../dal/resourceDal";
+import { ResponseObject } from "../utils/constants";
 
 export const addBooking = async (
   body: { resourceId: number; userId: number; startTime: string; endTime: string },
-  resp: any
+  resp: ResponseObject
 ) => {
   try {
     const { resourceId, userId, startTime, endTime } = body;
@@ -78,7 +79,7 @@ export const addBooking = async (
   }
 };
 
-export const getBookings = async (resp: any) => {
+export const getBookings = async (resp: ResponseObject) => {
   try {
     const bookings = await getBookingsList();
 
@@ -98,7 +99,7 @@ export const getBookings = async (resp: any) => {
   }
 };
 
-export const removeBookingById = async (id: number, userId: number, resp: any) => {
+export const removeBookingById = async (id: number, userId: number, resp: ResponseObject) => {
   try {
     if (!userId) {
       return {

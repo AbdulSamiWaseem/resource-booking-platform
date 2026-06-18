@@ -1,8 +1,9 @@
 import { findUserByEmail, createUser } from "../dal/userDal";
+import { ResponseObject } from "../utils/constants";
 
 export const registerOrRetrieveUser = async (
   body: { name: string; email: string },
-  resp: any
+  resp: ResponseObject
 ) => {
   try {
     const { name, email } = body;

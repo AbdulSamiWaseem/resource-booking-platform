@@ -1,6 +1,7 @@
 import { createResource, getAllResourcesList, findResourceById, deleteResource, updateResource } from "../dal/resourceDal";
+import { ResponseObject } from "../utils/constants";
 
-export const addResource = async (body: { name: string; description: string }, resp: any) => {
+export const addResource = async (body: { name: string; description: string }, resp: ResponseObject) => {
   try {
     const { name, description } = body;
 
@@ -22,7 +23,7 @@ export const addResource = async (body: { name: string; description: string }, r
   }
 };
 
-export const getAllResources = async (resp: any) => {
+export const getAllResources = async (resp: ResponseObject) => {
   try {
     const resources = await getAllResourcesList();
     return {
@@ -41,7 +42,7 @@ export const getAllResources = async (resp: any) => {
   }
 };
 
-export const getResourceDetailsById = async (id: number, resp: any) => {
+export const getResourceDetailsById = async (id: number, resp: ResponseObject) => {
   try {
     const resource = await findResourceById(id);
     if (!resource) {
@@ -66,7 +67,7 @@ export const getResourceDetailsById = async (id: number, resp: any) => {
   }
 };
 
-export const deleteResourceById = async (id: number, resp: any) => {
+export const deleteResourceById = async (id: number, resp: ResponseObject) => {
   try {
     const resource = await findResourceById(id);
     if (!resource) {
@@ -89,7 +90,7 @@ export const deleteResourceById = async (id: number, resp: any) => {
   }
 };
 
-export const editResourceById = async (id: number, body: { name: string; description: string }, resp: any) => {
+export const editResourceById = async (id: number, body: { name: string; description: string }, resp: ResponseObject) => {
   try {
     const resource = await findResourceById(id);
     if (!resource) {
