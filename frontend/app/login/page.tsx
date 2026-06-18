@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { postRequestUpdated } from "../services/apiCalls";
+import { postApi } from "../services/apiCalls";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -31,7 +31,7 @@ export default function Login() {
   }, [router]);
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginInput) => postRequestUpdated("users", data),
+    mutationFn: (data: LoginInput) => postApi("users", data),
     onSuccess: (res: any) => {
       toast.success(res?.message || "Successful!");
       if (res?.data) {

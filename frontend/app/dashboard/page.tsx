@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { deleteRequest, putRequest, getRequestUpdated } from "../services/apiCalls";
+import { deleteRequest, putRequest, getApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   const { data, isLoading: loading, error } = useQuery({
     queryKey: ["resources"],
-    queryFn: () => getRequestUpdated("resources"),
+    queryFn: () => getApi("resources"),
   });
 
   const resources: Resource[] = data?.resources || [];
