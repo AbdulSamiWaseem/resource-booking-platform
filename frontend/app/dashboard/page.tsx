@@ -93,7 +93,12 @@ export default function Dashboard() {
   const filteredResources = resources.filter((resource) =>
     resource.name.toLowerCase().includes(searchValue.toLowerCase())
   );
-
+  const handleEditResource = (resource: Resource) => {
+    setEditingResourceId(resource.id);
+    setValue("name", resource.name);
+    setValue("description", resource.description);
+    setIsEditModalVisible(true);
+  };
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
@@ -137,10 +142,7 @@ export default function Dashboard() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setEditingResourceId(resource.id);
-                    setValue("name", resource.name);
-                    setValue("description", resource.description);
-                    setIsEditModalVisible(true);
+                    handleEditResource(resource);
                   }}
                   className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
                 >

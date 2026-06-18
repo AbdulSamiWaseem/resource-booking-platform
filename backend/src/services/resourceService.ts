@@ -1,66 +1,119 @@
 import { createResource, getAllResourcesList, findResourceById, deleteResource, updateResource } from "../dal/resourceDal";
+import { ResponseObject } from "../utils/constants";
 
-export const addResource = async (body: { name: string; description: string }, resp: any) => {
-  const { name, description } = body;
+export const addResource = async (body: { name: string; description: string }, resp: ResponseObject) => {
+  try {
+    const { name, description } = body;
 
-  const newResource = await createResource({ name, description });
+    const newResource = await createResource({ name, description });
 
-  resp.success_message = "Resource created successfully";
-  resp.data = {
-    resource: newResource,
-  };
-
-  return resp;
-};
-
-export const getAllResources = async (resp: any) => {
-  const resources = await getAllResourcesList();
-  resp.success_message = "Resources retrieved successfully";
-  resp.data = {
-    resources,
-  };
-  return resp;
-};
-
-export const getResourceDetailsById = async (id: number, resp: any) => {
-  const resource = await findResourceById(id);
-  if (!resource) {
-    resp.error = true;
-    resp.error_message = "Resource not found";
-    return resp;
+    return {
+      ...resp,
+      success_message: "Resource created successfully",
+      data: {
+        resource: newResource,
+      }
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to create resource",
+    };
   }
-  resp.success_message = "Resource Details fetched successfully";
-  resp.data = {
-    resource,
-  };
-  return resp;
 };
 
-export const deleteResourceById = async (id: number, resp: any) => {
-  const resource = await findResourceById(id);
-  if (!resource) {
-    resp.error = true;
-    resp.error_message = "Resource not found";
-    return resp;
+export const getAllResources = async (resp: ResponseObject) => {
+  try {
+    const resources = await getAllResourcesList();
+    return {
+      ...resp,
+      success_message: "Resources retrieved successfully",
+      data: {
+        resources,
+      }
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to get resources",
+    };
   }
-  await deleteResource(id);
-  resp.success_message = "Resource deleted successfully";
-  return resp;
 };
 
-export const editResourceById = async (id: number, body: { name: string; description: string }, resp: any) => {
-  const resource = await findResourceById(id);
-  if (!resource) {
-    resp.error = true;
-    resp.error_message = "Resource not found";
-    return resp;
+export const getResourceDetailsById = async (id: number, resp: ResponseObject) => {
+  try {
+    const resource = await findResourceById(id);
+    if (!resource) {
+      return {
+        error: true,
+        error_message: "Resource not found",
+      };
+    }
+    return {
+      ...resp,
+      success_message: "Resource Details fetched successfully",
+      data: {
+        resource,
+      }
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to get resource details",
+    };
   }
-  const updatedResource = await updateResource(id, body);
-  resp.success_message = "Resource updated successfully";
-  resp.data = {
-    resource: updatedResource,
-  };
-  return resp;
+};
+
+export const deleteResourceById = async (id: number, resp: ResponseObject) => {
+  try {
+    const resource = await findResourceById(id);
+    if (!resource) {
+      return {
+        error: true,
+        error_message: "Resource not found",
+      };
+    }
+    await deleteResource(id);
+    return {
+      ...resp,
+      success_message: "Resource deleted successfully",
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to delete resource",
+    };
+  }
+};
+
+export const editResourceById = async (id: number, body: { name: string; description: string }, resp: ResponseObject) => {
+  try {
+    const resource = await findResourceById(id);
+    if (!resource) {
+      return {
+        error: true,
+        error_message: "Resource not found",
+      };
+    }
+    const updatedResource = await updateResource(id, body);
+    return {
+      ...resp,
+      success_message: "Resource updated successfully",
+      data: {
+        resource: updatedResource,
+      }
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to edit resource",
+    };
+  }
 };
 
 

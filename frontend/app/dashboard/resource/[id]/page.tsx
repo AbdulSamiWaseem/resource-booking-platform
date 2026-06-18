@@ -24,6 +24,7 @@ export default function ResourceDetailPage() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [cancelling, setCancelling] = useState<number[]>([]);
 
   const { register, handleSubmit, formState, reset } = useForm<BookingInputs>();
   const { errors } = formState;
@@ -102,13 +103,16 @@ export default function ResourceDetailPage() {
       toast.error("User not found. Please log in again.");
       return;
     }
+    setCancelling((prev) => [...prev, bookingId]);
     const payload = { userId };
     const onSuccess = (res: any) => {
       toast.success("Booking cancelled successfully!");
       fetchResourceDetails();
+      setCancelling((prev) => prev.filter((id) => id !== bookingId));
     };
     const onError = (err: any) => {
       toast.error(err?.message || "Failed to cancel booking.");
+      setCancelling((prev) => prev.filter((id) => id !== bookingId));
     };
     await deleteRequest(payload, `bookings/${bookingId}`, onSuccess, onError);
   };
@@ -132,9 +136,9 @@ export default function ResourceDetailPage() {
                 <div className="text-gray-500">By: {booking.user.name}</div>
               </div>
               <button
-                disabled={!isOwner}
+                disabled={!isOwner || cancelling.includes(booking.id)}
                 onClick={() => cancelBooking(booking.id)}
-                className={`p-1 rounded text-white ${isOwner
+                className={`p-1 rounded text-white ${isOwner && !cancelling.includes(booking.id)
                   ? "bg-red-500 hover:bg-red-600 cursor-pointer"
                   : "bg-red-500 cursor-not-allowed opacity-50"
                   }`}
