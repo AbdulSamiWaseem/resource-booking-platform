@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { deleteRequest, putRequest, getApi } from "../services/apiCalls";
+import { putRequest, getApi, deleteApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Resource {
   id: number;
@@ -50,18 +50,22 @@ export default function Dashboard() {
     router.replace("/login");
   };
 
-  const handleDeleteResource = async (id: number) => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteApi(`resources/${id}`),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Resource deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to delete resource.");
+    },
+  });
+
+  const handleDeleteResource = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this resource?")) {
       return;
     }
-    const onSuccess = (res: any) => {
-      toast.success("Resource deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ["resources"] });
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to delete resource.");
-    };
-    await deleteRequest(null, `resources/${id}`, onSuccess, onError);
+    deleteMutation.mutate(id);
   };
 
   const handleEditSubmit = async (data: ResourceInputs) => {
@@ -149,11 +153,12 @@ export default function Dashboard() {
                   Edit
                 </button>
                 <button
+                  disabled={deleteMutation.isPending}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteResource(resource.id);
                   }}
-                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
+                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer disabled:opacity-50"
                 >
                   Delete
                 </button>
