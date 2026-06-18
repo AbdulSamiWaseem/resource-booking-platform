@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest, postRequest } from "../../../services/apiCalls";
+import { getRequest, postRequest, deleteRequest } from "../../../services/apiCalls";
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -19,11 +19,11 @@ export default function ResourceDetailPage() {
   const [bookingStartTime, setBookingStartTime] = useState("");
   const [bookingEndTime, setBookingEndTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [cancelling, setCancelling] = useState<number[]>([]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedUser = localStorage.getItem("user");
-    const user = JSON.parse(storedUser || "{}");
     const start = dayjs(`${bookingDate} ${bookingStartTime}`);
     const end = dayjs(`${bookingDate} ${bookingEndTime}`);
 
@@ -35,7 +35,7 @@ export default function ResourceDetailPage() {
 
     const payload = {
       resourceId,
-      userId: user.user.id,
+      userId,
       startTime: start.toISOString(),
       endTime: end.toISOString(),
     };
@@ -81,11 +81,37 @@ export default function ResourceDetailPage() {
 
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const parsedUser = JSON.parse(storedUser || "{}");
+    if (parsedUser.user?.id) {
+      setUserId(parsedUser.user.id);
+    }
     if (resourceId) {
       fetchResourceDetails();
     }
   }, [resourceId]);
 
+  const cancelBooking = async (bookingId: number) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) {
+      return;
+    }
+    if (!userId) {
+      toast.error("User not found. Please log in again.");
+      return;
+    }
+    setCancelling((prev) => [...prev, bookingId]);
+    const payload = { userId };
+    const onSuccess = (res: any) => {
+      toast.success("Booking cancelled successfully!");
+      fetchResourceDetails();
+      setCancelling((prev) => prev.filter((id) => id !== bookingId));
+    };
+    const onError = (err: any) => {
+      toast.error(err?.message || "Failed to cancel booking.");
+      setCancelling((prev) => prev.filter((id) => id !== bookingId));
+    };
+    await deleteRequest(payload, `bookings/${bookingId}`, onSuccess, onError);
+  };
   const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;
 
@@ -98,14 +124,28 @@ export default function ResourceDetailPage() {
         {bookings.map((booking: any) => {
           const startTime = dayjs(booking.startTime).format("hh:mm A");
           const endTime = dayjs(booking.endTime).format("hh:mm A");
+          const isOwner = booking.userId === userId;
           return (
-            <div key={booking.id} className="text-xs mb-1 border border-gray-200 rounded px-1 py-0.5">
-              <div className="font-semibold">{startTime} - {endTime}</div>
-              <div className="text-xs text-gray-500">By: {booking.user.name}</div>
+            <div key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
+              <div>
+                <div className="font-semibold text-nowrap">{startTime} - {endTime}</div>
+                <div className="text-gray-500">By: {booking.user.name}</div>
+              </div>
+              <button
+                disabled={!isOwner || cancelling.includes(booking.id)}
+                onClick={() => cancelBooking(booking.id)}
+                className={`p-1 rounded text-white ${isOwner && !cancelling.includes(booking.id)
+                  ? "bg-red-500 hover:bg-red-600 cursor-pointer"
+                  : "bg-red-500 cursor-not-allowed opacity-50"
+                  }`}
+              >
+                Cancel
+              </button>
             </div>
           );
-        })}
-      </div>
+        })
+        }
+      </div >
     );
   };
 
@@ -123,12 +163,12 @@ export default function ResourceDetailPage() {
   }
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-        <div>
+      <div className="flex justify-between items-start pb-4 border-b border-gray-200">
+        <div className="flex flex-col">
           <h1 className="text-2xl font-bold">{resource.name}</h1>
           <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 min-w-80 mt-1">
           <button
             onClick={() => setIsBookingModalVisible(true)}
             className="text-sm bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">

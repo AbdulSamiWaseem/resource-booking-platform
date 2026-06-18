@@ -52,3 +52,23 @@ export const getRequest = (
 ) => {
   return apiCall('get', null, route, onSuccess, onError);
 };
+
+export const deleteRequest = (
+  payload: any,
+  route: string,
+  onSuccess: (data: any) => void = () => { },
+  onError: (error: any) => void = () => { },
+) => {
+  return apiCall('delete', payload, route, onSuccess, onError);
+};
+
+export const putRequest = (
+  payload: any,
+  route: string,
+  onSuccess: (data: any) => void = () => { },
+  onError: (error: any) => void = () => { },
+) => {
+  return apiCall('put', payload, route, onSuccess, onError);
+};
+
+

@@ -45,4 +45,17 @@ export const getBookingsList = async () => {
   });
 };
 
+export const findBookingById = async (id: number) => {
+  return await prisma.booking.findUnique({
+    where: { id },
+  });
+};
+
+export const deleteBookingById = async (id: number) => {
+  return await prisma.booking.delete({
+    where: { id },
+  });
+};
+
+
 

@@ -1,6 +1,14 @@
 import { Response } from "express";
 
-export const createResponseObject = () => {
+export interface ResponseObject<Type = any> {
+  error: boolean;
+  auth: boolean;
+  error_message: string;
+  success_message: string;
+  data: Type | null;
+}
+
+export const createResponseObject = (): ResponseObject => {
   return {
     error: false,
     auth: true,

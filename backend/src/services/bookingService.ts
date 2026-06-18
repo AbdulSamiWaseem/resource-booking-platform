@@ -1,72 +1,138 @@
-import { createBooking, checkOverlap, getBookingsList } from "../dal/bookingDal";
+import { createBooking, checkOverlap, getBookingsList, findBookingById, deleteBookingById } from "../dal/bookingDal";
 import { findUserById } from "../dal/userDal";
 import { findResourceById } from "../dal/resourceDal";
+import { ResponseObject } from "../utils/constants";
 
 export const addBooking = async (
   body: { resourceId: number; userId: number; startTime: string; endTime: string },
-  resp: any
+  resp: ResponseObject
 ) => {
-  const { resourceId, userId, startTime, endTime } = body;
+  try {
+    const { resourceId, userId, startTime, endTime } = body;
 
-  const start = new Date(startTime);
-  const end = new Date(endTime);
+    const start = new Date(startTime);
+    const end = new Date(endTime);
 
-  const isSameDay =
-    start.getFullYear() === end.getFullYear() &&
-    start.getMonth() === end.getMonth() &&
-    start.getDate() === end.getDate();
+    const isSameDay =
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate();
 
-  if (!isSameDay) {
-    resp.error = true;
-    resp.error_message = "Booking start time and end time must be on the same day";
-    return resp;
+    if (!isSameDay) {
+      return {
+        error: true,
+        error_message: "Booking start time and end time must be on the same day",
+      };
+    }
+
+    if (start < new Date()) {
+      return {
+        error: true,
+        error_message: "Booking cannot be created in the past",
+      };
+    }
+
+    const user = await findUserById(userId);
+    if (!user) {
+      return {
+        error: true,
+        error_message: "User not found",
+      };
+    }
+
+    const resource = await findResourceById(resourceId);
+    if (!resource) {
+      return {
+        error: true,
+        error_message: "Resource not found",
+      };
+    }
+
+    const overlap = await checkOverlap(resourceId, start, end);
+    if (overlap) {
+      return {
+        error: true,
+        error_message: "Booking already exist for this resource in this timeslot",
+      };
+    }
+
+    const newBooking = await createBooking({
+      resourceId,
+      userId,
+      startTime: start,
+      endTime: end,
+    });
+
+    return {
+      ...resp,
+      success_message: "Booking created successfully",
+      data: {
+        booking: newBooking,
+      },
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to create booking",
+    };
   }
-
-  const user = await findUserById(userId);
-  if (!user) {
-    resp.error = true;
-    resp.error_message = "User not found";
-    return resp;
-  }
-
-  const resource = await findResourceById(resourceId);
-  if (!resource) {
-    resp.error = true;
-    resp.error_message = "Resource not found";
-    return resp;
-  }
-
-  const overlap = await checkOverlap(resourceId, start, end);
-  if (overlap) {
-    resp.error = true;
-    resp.error_message = "Booking already exist for this resource in this timeslot";
-    return resp;
-  }
-
-  const newBooking = await createBooking({
-    resourceId,
-    userId,
-    startTime: start,
-    endTime: end,
-  });
-
-  resp.success_message = "Booking created successfully";
-  resp.data = {
-    booking: newBooking,
-  };
-
-  return resp;
 };
 
-export const getBookings = async (resp: any) => {
-  const bookings = await getBookingsList();
+export const getBookings = async (resp: ResponseObject) => {
+  try {
+    const bookings = await getBookingsList();
 
-  resp.success_message = "Bookings retrieved successfully";
-  resp.data = {
-    bookings,
-  };
-
-  return resp;
+    return {
+      ...resp,
+      success_message: "Bookings retrieved successfully",
+      data: {
+        bookings,
+      },
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to get bookings",
+    };
+  }
 };
+
+export const removeBookingById = async (id: number, userId: number, resp: ResponseObject) => {
+  try {
+    if (!userId) {
+      return {
+        error: true,
+        error_message: "User ID is required",
+      };
+    }
+    const booking = await findBookingById(id);
+    if (!booking) {
+      return {
+        error: true,
+        error_message: "Booking not found",
+      };
+    }
+    if (booking.userId !== userId) {
+      return {
+        error: true,
+        error_message: "You cannot cancel this booking",
+      };
+    }
+    await deleteBookingById(id);
+    return {
+      ...resp,
+      success_message: "Booking cancelled successfully",
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to cancel booking",
+    };
+  }
+};
+
 
 
