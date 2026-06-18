@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest, postRequest, deleteRequest } from "../../../services/apiCalls";
+import { getRequest, deleteRequest, postApi } from "../../../services/apiCalls";
 import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
 
 interface BookingInputs {
   date: string;
@@ -22,12 +23,24 @@ export default function ResourceDetailPage() {
   const [resource, setResource] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
   const [cancelling, setCancelling] = useState<number[]>([]);
 
   const { register, handleSubmit, formState, reset } = useForm<BookingInputs>();
   const { errors } = formState;
+
+  const bookingMutation = useMutation({
+    mutationFn: (payload: any) => postApi("bookings", payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Booking created successfully!");
+      setIsBookingModalVisible(false);
+      reset();
+      fetchResourceDetails();
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to create booking.");
+    },
+  });
 
   const handleBookingSubmit = async (data: BookingInputs) => {
     const start = dayjs(`${data.date} ${data.startTime}`);
@@ -37,7 +50,6 @@ export default function ResourceDetailPage() {
       toast.error("Start time must be before end time.");
       return;
     }
-    setSubmitting(true);
 
     const payload = {
       resourceId,
@@ -46,20 +58,7 @@ export default function ResourceDetailPage() {
       endTime: end.toISOString(),
     };
 
-    const onSuccess = (res: any) => {
-      toast.success("Booking created successfully!");
-      setIsBookingModalVisible(false);
-      reset();
-      fetchResourceDetails();
-      setSubmitting(false);
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to create booking.");
-      setSubmitting(false);
-    };
-
-    await postRequest(payload, 'bookings', onSuccess, onError);
+    bookingMutation.mutate(payload);
   };
 
   const fetchResourceDetails = async () => {
@@ -242,10 +241,10 @@ export default function ResourceDetailPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={bookingMutation.isPending}
                   className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
                 >
-                  {submitting ? "Booking..." : "Book Resource"}
+                  {bookingMutation.isPending ? "Booking..." : "Book Resource"}
                 </button>
               </div>
             </form>
