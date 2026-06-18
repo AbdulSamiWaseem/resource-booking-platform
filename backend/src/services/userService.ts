@@ -7,31 +7,37 @@ export const registerOrRetrieveUser = async (
   const { name, email } = body;
 
   if (!name || !email) {
-    resp.error = true;
-    resp.error_message = "Name and email are required";
-    return resp;
+    return {
+      error: true,
+      error_message: "Name and email are required",
+    };
   }
 
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
     if (existingUser.name !== name) {
-      resp.error = true;
-      resp.error_message = "Name does not match the registered name for this email";
-      return resp;
+      return {
+        error: true,
+        error_message: "Name does not match the registered name for this email",
+      };
     }
-    resp.success_message = "User verified successfully";
-    resp.data = {
-      user: existingUser,
-      isNew: false,
+    return {
+      ...resp,
+      success_message: "User verified successfully",
+      data: {
+        user: existingUser,
+        isNew: false
+      }
     };
-    return resp;
   }
 
   const newUser = await createUser({ name, email });
-  resp.success_message = "User created successfully";
-  resp.data = {
-    user: newUser,
-    isNew: true,
+  return {
+    ...resp,
+    success_message: "User created successfully",
+    data: {
+      user: newUser,
+      isNew: true
+    }
   };
-  return resp;
 };
