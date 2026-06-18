@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { postRequest } from "../services/apiCalls";
+import { useMutation } from "@tanstack/react-query";
+import { postRequestUpdated } from "../services/apiCalls";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -29,24 +30,23 @@ export default function Login() {
     }
   }, [router]);
 
-  const handleOnSubmit = async (data: LoginInput) => {
-    const { name, email } = data;
-    console.log(data);
-    const onSuccess = (res: any) => {
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginInput) => postRequestUpdated("users", data),
+    onSuccess: (res: any) => {
       toast.success(res?.message || "Successful!");
       if (res?.data) {
         localStorage.setItem("user", JSON.stringify(res.data));
       }
       reset();
       router.push("/dashboard");
-    };
-
-    const onError = (err: any) => {
+    },
+    onError: (err: any) => {
       toast.error(err?.message || "An error occurred.");
-    };
+    },
+  });
 
-    const route = "users";
-    await postRequest({ name, email }, route, onSuccess, onError);
+  const handleOnSubmit = (data: LoginInput) => {
+    loginMutation.mutate(data);
   };
 
   if (checkingAuth) {
@@ -90,9 +90,10 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded cursor-pointer"
+            disabled={loginMutation.isPending}
+            className="w-full bg-blue-500 text-white p-2 rounded cursor-pointer disabled:opacity-50"
           >
-            Submit
+            {loginMutation.isPending ? "Submitting..." : "Submit"}
           </button>
         </form>
       </div>

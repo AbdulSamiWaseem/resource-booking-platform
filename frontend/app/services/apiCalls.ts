@@ -77,4 +77,10 @@ export const getRequestUpdated = async (route: string) => {
   return res.data.data;
 };
 
+export const postRequestUpdated = async (route: string, payload: any) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const res = await axios.post(`${baseUrl}${route}`, payload);
+  return res.data;
+};
+
 
