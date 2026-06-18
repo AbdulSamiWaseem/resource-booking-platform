@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { postRequest } from "../../services/apiCalls";
+import { postApi } from "../../services/apiCalls";
 import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface ResourceInputs {
   name: string;
@@ -12,22 +13,24 @@ interface ResourceInputs {
 
 export default function CreateResource() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { register, handleSubmit, formState } = useForm<ResourceInputs>();
   const { errors } = formState;
 
-  const handleOnSubmit = async (data: ResourceInputs) => {
-    const { name, description } = data;
-
-    const onSuccess = (res: any) => {
+  const createMutation = useMutation({
+    mutationFn: (payload: ResourceInputs) => postApi("resources", payload),
+    onSuccess: (res: any) => {
       toast.success(res?.message || "Resource created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
       router.push("/dashboard");
-    };
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "An error occurred.");
+    },
+  });
 
-    const onError = (err: any) => {
-      toast.error(err?.message || "An error occurred.");
-    };
-
-    await postRequest({ name, description }, "resources/", onSuccess, onError);
+  const handleOnSubmit = (data: ResourceInputs) => {
+    createMutation.mutate(data);
   };
 
   return (
@@ -72,9 +75,10 @@ export default function CreateResource() {
         <div className="flex gap-4 pt-2">
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+            disabled={createMutation.isPending}
+            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
           >
-            Save Resource
+            {createMutation.isPending ? "Saving..." : "Save Resource"}
           </button>
           <button
             type="button"
