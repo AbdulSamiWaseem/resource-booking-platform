@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest, deleteRequest, postApi } from "../../../services/apiCalls";
+import { getRequest, postApi, deleteApi } from "../../../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 
@@ -24,7 +24,6 @@ export default function ResourceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [cancelling, setCancelling] = useState<number[]>([]);
 
   const { register, handleSubmit, formState, reset } = useForm<BookingInputs>();
   const { errors } = formState;
@@ -94,6 +93,18 @@ export default function ResourceDetailPage() {
     }
   }, [resourceId]);
 
+  const cancelMutation = useMutation({
+    mutationFn: ({ bookingId, payload }: { bookingId: number; payload: any }) =>
+      deleteApi(`bookings/${bookingId}`, payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Booking cancelled successfully!");
+      fetchResourceDetails();
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to cancel booking.");
+    },
+  });
+
   const cancelBooking = async (bookingId: number) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) {
       return;
@@ -102,18 +113,8 @@ export default function ResourceDetailPage() {
       toast.error("User not found. Please log in again.");
       return;
     }
-    setCancelling((prev) => [...prev, bookingId]);
     const payload = { userId };
-    const onSuccess = (res: any) => {
-      toast.success("Booking cancelled successfully!");
-      fetchResourceDetails();
-      setCancelling((prev) => prev.filter((id) => id !== bookingId));
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to cancel booking.");
-      setCancelling((prev) => prev.filter((id) => id !== bookingId));
-    };
-    await deleteRequest(payload, `bookings/${bookingId}`, onSuccess, onError);
+    cancelMutation.mutate({ bookingId, payload });
   };
   const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;
@@ -135,9 +136,9 @@ export default function ResourceDetailPage() {
                 <div className="text-gray-500">By: {booking.user.name}</div>
               </div>
               <button
-                disabled={!isOwner || cancelling.includes(booking.id)}
+                disabled={!isOwner || cancelMutation.isPending}
                 onClick={() => cancelBooking(booking.id)}
-                className={`p-1 rounded text-white ${isOwner && !cancelling.includes(booking.id)
+                className={`p-1 rounded text-white ${isOwner && !cancelMutation.isPending
                   ? "bg-red-500 hover:bg-red-600 cursor-pointer"
                   : "bg-red-500 cursor-not-allowed opacity-50"
                   }`}
