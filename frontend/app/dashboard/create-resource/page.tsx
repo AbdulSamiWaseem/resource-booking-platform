@@ -5,16 +5,24 @@ import { toast } from "react-hot-toast";
 import { postApi } from "../../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface ResourceInputs {
   name: string;
   description: string;
 }
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+});
 
 export default function CreateResource() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState } = useForm<ResourceInputs>();
+  const { register, handleSubmit, formState } = useForm<ResourceInputs>({
+    resolver: zodResolver(schema)
+  });
   const { errors } = formState;
 
   const createMutation = useMutation({
@@ -50,7 +58,7 @@ export default function CreateResource() {
           <div className="text-sm font-semibold">Resource Name</div>
           <input
             type="text"
-            {...register("name", { required: "Resource name is required" })}
+            {...register("name")}
             placeholder="e.g. Meeting Room"
             className="w-full p-2 border border-gray-300 rounded"
           />
@@ -62,7 +70,7 @@ export default function CreateResource() {
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold">Description</div>
           <textarea
-            {...register("description", { required: "Description is required" })}
+            {...register("description")}
             placeholder="Describe the resource..."
             rows={3}
             className="w-full p-2 border border-gray-300 rounded"
