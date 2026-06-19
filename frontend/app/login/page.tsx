@@ -7,16 +7,24 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface LoginInput {
   name: string;
   email: string;
 }
 
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
+});
 export default function Login() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-  const form = useForm<LoginInput>();
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(schema),
+  });
   const { register, control, handleSubmit, formState, reset } = form;
   const { errors } = formState;
 
@@ -41,7 +49,7 @@ export default function Login() {
       router.push("/dashboard");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "An error occurred.");
+      toast.error(err?.response?.data?.message || "An error occurred.");
     },
   });
 
@@ -68,7 +76,7 @@ export default function Login() {
             </div>
             <input
               type="text"
-              {...register("name", { required: "Name is required" })}
+              {...register("name")}
               placeholder="Enter your name"
               className="w-full p-2 border border-gray-300 rounded text-black bg-white"
             />
@@ -81,7 +89,7 @@ export default function Login() {
             </div>
             <input
               type="email"
-              {...register("email", { required: "Email is required" })}
+              {...register("email")}
               placeholder="Enter your email"
               className="w-full p-2 border border-gray-300 rounded text-black bg-white"
             />
