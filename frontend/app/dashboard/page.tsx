@@ -54,11 +54,7 @@ export default function Dashboard() {
 
   const deleteMutation = deleteResource();
 
-  const editMutation = editResource(() => {
-    setIsEditModalVisible(false);
-    setEditingResourceId(null);
-    reset();
-  });
+  const editMutation = editResource();
 
   const handleDeleteResource = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this resource?")) {
@@ -74,6 +70,12 @@ export default function Dashboard() {
       payload: {
         name: data.name,
         description: data.description,
+      },
+    }, {
+      onSuccess: () => {
+        setIsEditModalVisible(false);
+        setEditingResourceId(null);
+        reset();
       },
     });
   };

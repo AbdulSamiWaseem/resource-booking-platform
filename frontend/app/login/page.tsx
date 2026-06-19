@@ -31,10 +31,14 @@ export default function Login() {
     }
   }, [router]);
 
-  const loginMutation = login(reset);
+  const loginMutation = login();
 
   const handleOnSubmit = (data: LoginInput) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   if (checkingAuth) {

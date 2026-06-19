@@ -32,7 +32,7 @@ export interface LoginInput {
   email: string;
 }
 
-export const login = (reset: () => void) => {
+export const login = () => {
   const router = useRouter();
 
   return useMutation({
@@ -42,7 +42,6 @@ export const login = (reset: () => void) => {
       if (res?.data) {
         localStorage.setItem("user", JSON.stringify(res.data));
       }
-      reset();
       router.push("/dashboard");
     },
     onError: (err: any) => {
@@ -66,7 +65,7 @@ export const deleteResource = () => {
   });
 };
 
-export const editResource = (reset: () => void) => {
+export const editResource = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -75,10 +74,40 @@ export const editResource = (reset: () => void) => {
     onSuccess: (res: any) => {
       toast.success(res?.message || "Resource updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["resources"] });
-      reset();
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || "Failed to update resource.");
+    },
+  });
+};
+
+export const createBooking = (resourceId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: any) => postApi("bookings", payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Booking created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resource", resourceId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to create booking.");
+    },
+  });
+};
+
+export const deleteBooking = (resourceId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ bookingId, payload }: { bookingId: number; payload: any }) =>
+      deleteApi(`bookings/${bookingId}`, payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Booking cancelled successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resource", resourceId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to cancel booking.");
     },
   });
 };
