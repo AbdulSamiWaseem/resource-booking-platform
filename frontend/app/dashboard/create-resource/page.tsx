@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { TextField, Button, Stack } from "@mui/material";
 
 interface ResourceInputs {
   name: string;
@@ -45,57 +46,57 @@ export default function CreateResource() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
         <h1 className="text-2xl font-bold">Create Resource</h1>
-        <button
+        <Button
           onClick={() => router.push("/dashboard")}
-          className="text-sm bg-gray-200 px-3 py-1.5 rounded cursor-pointer"
+          variant="outlined"
+          sx={{ textTransform: "none" }}
         >
           Back to Dashboard
-        </button>
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit(handleOnSubmit)} noValidate className="space-y-4">
-        <div className="flex flex-col gap-1">
-          <div className="text-sm font-semibold">Resource Name</div>
-          <input
-            type="text"
-            {...register("name")}
+      <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
+        <Stack spacing={2}>
+          <TextField
+            label="Resource Name"
             placeholder="e.g. Meeting Room"
-            className="w-full p-2 border border-gray-300 rounded"
+            fullWidth
+            {...register("name")}
+            error={!!errors.name}
+            helperText={errors.name?.message}
           />
-          {errors.name && (
-            <p className="text-red-500 text-xs">{errors.name.message}</p>
-          )}
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <div className="text-sm font-semibold">Description</div>
-          <textarea
-            {...register("description")}
+          <TextField
+            label="Description"
             placeholder="Describe the resource..."
-            rows={3}
-            className="w-full p-2 border border-gray-300 rounded"
+            multiline
+            rows={4}
+            fullWidth
+            {...register("description")}
+            error={!!errors.description}
+            helperText={errors.description?.message}
           />
-          {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description.message}</p>
-          )}
-        </div>
 
-        <div className="flex gap-4 pt-2">
-          <button
-            type="submit"
-            disabled={createMutation.isPending}
-            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
-          >
-            {createMutation.isPending ? "Saving..." : "Save Resource"}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="bg-gray-200 px-4 py-2 rounded cursor-pointer"
-          >
-            Cancel
-          </button>
-        </div>
+          <div className="flex gap-4 pt-2">
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={createMutation.isPending}
+              sx={{ textTransform: "none" }}
+            >
+              {createMutation.isPending ? "Saving..." : "Save Resource"}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              variant="contained"
+              color="error"
+              sx={{ textTransform: "none" }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Stack>
       </form>
     </div>
   );
