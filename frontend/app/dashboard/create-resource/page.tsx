@@ -1,18 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import { postApi } from "../../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextField, Button, Stack } from "@mui/material";
+import { createResource, ResourceInputs } from "../../services/mutation";
 
-interface ResourceInputs {
-  name: string;
-  description: string;
-}
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
@@ -20,23 +14,12 @@ const schema = z.object({
 
 export default function CreateResource() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { register, handleSubmit, formState } = useForm<ResourceInputs>({
     resolver: zodResolver(schema)
   });
   const { errors } = formState;
 
-  const createMutation = useMutation({
-    mutationFn: (payload: ResourceInputs) => postApi("resources", payload),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Resource created successfully!");
-      queryClient.invalidateQueries({ queryKey: ["resources"] });
-      router.push("/dashboard");
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "An error occurred.");
-    },
-  });
+  const createMutation = createResource();
 
   const handleOnSubmit = (data: ResourceInputs) => {
     createMutation.mutate(data);

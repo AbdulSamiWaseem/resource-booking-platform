@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getApi, postApi, deleteApi } from "../../../services/apiCalls";
+import { getApi } from "../../../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { createBooking, deleteBooking } from "../../../services/mutation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -27,7 +28,6 @@ export default function ResourceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const resourceId = Number(params.id);
-  const queryClient = useQueryClient();
 
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -37,18 +37,7 @@ export default function ResourceDetailPage() {
   });
   const { errors } = formState;
 
-  const bookingMutation = useMutation({
-    mutationFn: (payload: any) => postApi("bookings", payload),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Booking created successfully!");
-      setIsBookingModalVisible(false);
-      reset();
-      queryClient.invalidateQueries({ queryKey: ["resource", resourceId] });
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to create booking.");
-    },
-  });
+  const bookingMutation = createBooking(resourceId);
 
   const handleBookingSubmit = async (data: BookingInputs) => {
     const start = dayjs(`${data.date} ${data.startTime}`);
@@ -66,7 +55,12 @@ export default function ResourceDetailPage() {
       endTime: end.toISOString(),
     };
 
-    bookingMutation.mutate(payload);
+    bookingMutation.mutate(payload, {
+      onSuccess: () => {
+        setIsBookingModalVisible(false);
+        reset();
+      },
+    });
   };
 
   const { data: resourceData, isLoading: loading } = useQuery({
@@ -83,17 +77,7 @@ export default function ResourceDetailPage() {
     }
   }, []);
 
-  const cancelMutation = useMutation({
-    mutationFn: ({ bookingId, payload }: { bookingId: number; payload: any }) =>
-      deleteApi(`bookings/${bookingId}`, payload),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Booking cancelled successfully!");
-      queryClient.invalidateQueries({ queryKey: ["resource", resourceId] });
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to cancel booking.");
-    },
-  });
+  const cancelMutation = deleteBooking(resourceId);
 
   const cancelBooking = async (bookingId: number) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) {

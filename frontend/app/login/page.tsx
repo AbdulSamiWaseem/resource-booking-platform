@@ -1,20 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { postApi } from "../services/apiCalls";
-import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardHeader, CardContent, TextField, Button, Stack } from "@mui/material";
-
-interface LoginInput {
-  name: string;
-  email: string;
-}
+import { login, LoginInput } from "../services/mutation";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -39,23 +32,14 @@ export default function Login() {
     }
   }, [router]);
 
-  const loginMutation = useMutation({
-    mutationFn: (data: LoginInput) => postApi("users", data),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Successful!");
-      if (res?.data) {
-        localStorage.setItem("user", JSON.stringify(res.data));
-      }
-      reset();
-      router.push("/dashboard");
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "An error occurred.");
-    },
-  });
+  const loginMutation = login();
 
   const handleOnSubmit = (data: LoginInput) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   if (checkingAuth) {
