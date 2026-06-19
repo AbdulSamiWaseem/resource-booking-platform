@@ -8,6 +8,14 @@ import dayjs from "dayjs";
 import { getApi, postApi, deleteApi } from "../../../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const schema = z.object({
+  date: z.string().min(1, "Date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+});
 
 interface BookingInputs {
   date: string;
@@ -24,7 +32,9 @@ export default function ResourceDetailPage() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [userId, setUserId] = useState(null);
 
-  const { register, handleSubmit, formState, reset } = useForm<BookingInputs>();
+  const { register, handleSubmit, formState, reset } = useForm<BookingInputs>({
+    resolver: zodResolver(schema)
+  });
   const { errors } = formState;
 
   const bookingMutation = useMutation({
@@ -181,7 +191,7 @@ export default function ResourceDetailPage() {
                 <div className="text-sm font-semibold" >Date</div>
                 <input
                   type="date"
-                  {...register("date", { required: "Date is required" })}
+                  {...register("date")}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
                 {errors.date && (
@@ -193,7 +203,7 @@ export default function ResourceDetailPage() {
                   <div className="text-sm font-semibold" >Start Time</div>
                   <input
                     type="time"
-                    {...register("startTime", { required: "Start time is required" })}
+                    {...register("startTime")}
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                   {errors.startTime && (
@@ -204,7 +214,7 @@ export default function ResourceDetailPage() {
                   <div className="text-sm font-semibold" >End Time</div>
                   <input
                     type="time"
-                    {...register("endTime", { required: "End time is required" })}
+                    {...register("endTime")}
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                   {errors.endTime && (
