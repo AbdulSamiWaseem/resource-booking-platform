@@ -6,6 +6,8 @@ import { toast } from "react-hot-toast";
 import { putApi, getApi, deleteApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface Resource {
   id: number;
@@ -19,6 +21,10 @@ interface ResourceInputs {
   description: string;
 }
 
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+});
 export default function Dashboard() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -27,7 +33,9 @@ export default function Dashboard() {
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState("");
 
-  const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>();
+  const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>({
+    resolver: zodResolver(schema)
+  });
   const { errors } = formState;
 
   const { data, isLoading: loading, error } = useQuery({
@@ -175,7 +183,7 @@ export default function Dashboard() {
                 <div className="text-sm font-semibold">Name</div>
                 <input
                   type="text"
-                  {...register("name", { required: "Name is required" })}
+                  {...register("name")}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
                 {errors.name && (
@@ -185,7 +193,7 @@ export default function Dashboard() {
               <div>
                 <div className="text-sm font-semibold">Description</div>
                 <textarea
-                  {...register("description", { required: "Description is required" })}
+                  {...register("description")}
                   className="w-full p-2 border border-gray-300 rounded h-32"
                 />
                 {errors.description && (
