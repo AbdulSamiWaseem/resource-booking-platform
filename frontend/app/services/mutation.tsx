@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { postApi } from "./apiCalls";
+import { postApi, deleteApi, putApi } from "./apiCalls";
 
 export interface ResourceInputs {
   name: string;
@@ -47,6 +47,38 @@ export const login = (reset: () => void) => {
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || "An error occurred.");
+    },
+  });
+};
+
+export const deleteResource = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteApi(`resources/${id}`),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Resource deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to delete resource.");
+    },
+  });
+};
+
+export const editResource = (reset: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: ResourceInputs }) =>
+      putApi(`resources/${id}`, payload),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Resource updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      reset();
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to update resource.");
     },
   });
 };

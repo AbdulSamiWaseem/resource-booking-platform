@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { putApi, getApi, deleteApi } from "../services/apiCalls";
+import { getApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
 interface Resource {
   id: number;
@@ -16,18 +17,12 @@ interface Resource {
   createdAt: string;
 }
 
-interface ResourceInputs {
-  name: string;
-  description: string;
-}
-
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
 });
 export default function Dashboard() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
@@ -57,30 +52,12 @@ export default function Dashboard() {
     router.replace("/login");
   };
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteApi(`resources/${id}`),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Resource deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ["resources"] });
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to delete resource.");
-    },
-  });
+  const deleteMutation = deleteResource();
 
-  const editMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: ResourceInputs }) =>
-      putApi(`resources/${id}`, payload),
-    onSuccess: (res: any) => {
-      toast.success(res?.message || "Resource updated successfully!");
-      setIsEditModalVisible(false);
-      setEditingResourceId(null);
-      queryClient.invalidateQueries({ queryKey: ["resources"] });
-      reset();
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to update resource.");
-    },
+  const editMutation = editResource(() => {
+    setIsEditModalVisible(false);
+    setEditingResourceId(null);
+    reset();
   });
 
   const handleDeleteResource = (id: number) => {
