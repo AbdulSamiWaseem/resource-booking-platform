@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardHeader, CardContent, TextField, Button, Stack } from "@mui/material";
+import { Card, CardContent, TextField, Button, Stack, Box, Typography } from "@mui/material";
 import { login, LoginInput } from "../services/mutation";
 
 const schema = z.object({
@@ -44,18 +44,32 @@ export default function Login() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-gray-500">Loading...</div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center p-4 bg-white text-black">
-      <Card variant="outlined" className="w-full max-w-md bg-white">
-        <CardHeader
-          title="Resource Booking Platform"
-        />
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <Typography variant="h5">Resource Booking Platform</Typography>
+      <Card variant="outlined" className="w-full max-w-md">
         <CardContent>
           <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
             <Stack spacing={2}>
@@ -93,6 +107,6 @@ export default function Login() {
         </CardContent>
       </Card>
       <DevTool control={control} />
-    </div>
+    </Box>
   );
 }
