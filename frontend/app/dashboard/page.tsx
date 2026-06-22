@@ -17,6 +17,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Box,
+  Typography,
 } from "@mui/material";
 import { useResources } from "../services/queries";
 import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
@@ -98,10 +100,10 @@ export default function Dashboard() {
     setIsEditModalVisible(true);
   };
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <div className="flex gap-2">
+    <Box className="p-6">
+      <Box className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>Dashboard</Typography>
+        <Box className="flex gap-2">
           <Button
             onClick={() => router.push("/dashboard/create-resource")}
             variant="contained"
@@ -119,18 +121,18 @@ export default function Dashboard() {
           >
             Logout
           </Button>
-        </div>
-      </div>
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-semibold">Resources</h2>
+        </Box>
+      </Box>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>Resources</Typography>
         <TextField variant="outlined" size="small" type="text" placeholder="Search resources..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
-      </div>
+      </Box>
       {loading ? (
-        <p className="text-sm text-gray-500">Loading resources...</p>
+        <Typography variant="body2" >Loading resources...</Typography>
       ) : filteredResources.length === 0 ? (
-        <p className="text-sm text-gray-500">No resources available.</p>
+        <Typography variant="body2" >No resources available.</Typography>
       ) : (
-        <div className="space-y-4">
+        <Box className="flex flex-col gap-4">
           {filteredResources.map((resource) => (
             <Card
               key={resource.id}
@@ -138,16 +140,17 @@ export default function Dashboard() {
               className="flex justify-between items-center hover:scale-[1.01] cursor-pointer transition"
               onClick={() => router.push(`/dashboard/resource/${resource.id}`)}
             >
-              <div>
-                <CardHeader
-                  sx={{ pb: 1 }}
-                />
-                <h2 className="text-lg font-semibold pl-4">{resource.name}</h2>
-                <CardContent sx={{ pt: 0 }}>
-                  <p className="text-sm text-gray-500">{resource.description}</p>
+              <Box>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {resource.name}
+                  </Typography>
+                  <Typography variant="body2">
+                    {resource.description}
+                  </Typography>
                 </CardContent>
-              </div>
-              <div className="flex gap-2 p-4">
+              </Box>
+              <Box className="flex gap-2 p-4">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -174,10 +177,10 @@ export default function Dashboard() {
                 >
                   Delete
                 </Button>
-              </div>
+              </Box>
             </Card>
           ))}
-        </div>
+        </Box>
       )}
       <Dialog
         open={isEditModalVisible}
@@ -237,6 +240,6 @@ export default function Dashboard() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 }
