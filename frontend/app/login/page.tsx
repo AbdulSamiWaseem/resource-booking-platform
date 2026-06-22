@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, TextField, Button, Stack, Box, Typography } from "@mui/material";
 import { login, LoginInput } from "../services/mutation";
 
 const schema = z.object({
@@ -43,53 +44,69 @@ export default function Login() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-gray-500">Loading...</div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center p-4 bg-white text-black">
-      <h1 className="text-2xl font-bold mb-6">Resource Booking Platform</h1>
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <form onSubmit={handleSubmit(handleOnSubmit)} noValidate className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <div>
-              Name
-            </div>
-            <input
-              type="text"
-              {...register("name")}
-              placeholder="Enter your name"
-              className="w-full p-2 border border-gray-300 rounded text-black bg-white"
-            />
-            <p className="text-red-500 text-xs">{errors.name?.message}</p>
-          </div>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <Typography variant="h5">Resource Booking Platform</Typography>
+      <Card variant="outlined" className="w-full max-w-md">
+        <CardContent>
+          <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
+            <Stack spacing={2}>
+              <TextField
+                label="Name"
+                type="text"
+                placeholder="Enter your name"
+                fullWidth
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+              />
 
-          <div className="flex flex-col gap-1">
-            <div>
-              Email
-            </div>
-            <input
-              type="email"
-              {...register("email")}
-              placeholder="Enter your email"
-              className="w-full p-2 border border-gray-300 rounded text-black bg-white"
-            />
-            <p className="text-red-500 text-xs">{errors.email?.message}</p>
-          </div>
+              <TextField
+                label="Email"
+                type="email"
+                placeholder="Enter your email"
+                fullWidth
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
+              />
 
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className="w-full bg-blue-500 text-white p-2 rounded cursor-pointer disabled:opacity-50"
-          >
-            {loginMutation.isPending ? "Submitting..." : "Submit"}
-          </button>
-        </form>
-      </div>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loginMutation.isPending}
+                sx={{ py: 1, textTransform: "none" }}
+              >
+                {loginMutation.isPending ? "Submitting..." : "Submit"}
+              </Button>
+            </Stack>
+          </form>
+        </CardContent>
+      </Card>
       <DevTool control={control} />
-    </div>
+    </Box>
   );
 }

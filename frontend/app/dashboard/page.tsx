@@ -6,6 +6,20 @@ import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  TextField,
+  Button,
+  Card,
+  CardHeader,
+  CardContent,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Box,
+  Typography,
+} from "@mui/material";
 import { useResources } from "../services/queries";
 import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
@@ -86,119 +100,146 @@ export default function Dashboard() {
     setIsEditModalVisible(true);
   };
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <div className="flex gap-2">
-          <button
+    <Box className="p-6">
+      <Box className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>Dashboard</Typography>
+        <Box className="flex gap-2">
+          <Button
             onClick={() => router.push("/dashboard/create-resource")}
-            className="text-sm bg-blue-500 text-white px-3 py-1.5 rounded cursor-pointer"
+            variant="contained"
+            size="small"
+            sx={{ textTransform: "none" }}
           >
             Create Resource
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleLogout}
-            className="text-sm bg-gray-500 text-white px-3 py-1.5 rounded cursor-pointer"
+            variant="contained"
+            color="error"
+            size="small"
+            sx={{ textTransform: "none" }}
           >
             Logout
-          </button>
-        </div>
-      </div>
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold">Resources</h2>
-        <input className="px-4 py-2 border border-gray-300 rounded text-sm outline-none min-w-72" type="text" placeholder="Search resources..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
-      </div>
+          </Button>
+        </Box>
+      </Box>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>Resources</Typography>
+        <TextField variant="outlined" size="small" type="text" placeholder="Search resources..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+      </Box>
       {loading ? (
-        <p className="text-sm text-gray-500">Loading resources...</p>
+        <Typography variant="body2" >Loading resources...</Typography>
       ) : filteredResources.length === 0 ? (
-        <p className="text-sm text-gray-500">No resources available.</p>
+        <Typography variant="body2" >No resources available.</Typography>
       ) : (
-        <div className="space-y-4">
+        <Box className="flex flex-col gap-4">
           {filteredResources.map((resource) => (
-            <div
+            <Card
               key={resource.id}
-              className="p-4 border border-gray-300 rounded flex justify-between items-center hover:scale-[1.01] cursor-pointer transition"
+              variant="outlined"
+              className="flex justify-between items-center hover:scale-[1.01] cursor-pointer transition"
               onClick={() => router.push(`/dashboard/resource/${resource.id}`)}
             >
-              <div className="flex flex-col gap-1">
-                <h3 className="font-bold">{resource.name}</h3>
-                <p className="text-sm text-gray-500">{resource.description}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
+              <Box>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {resource.name}
+                  </Typography>
+                  <Typography variant="body2">
+                    {resource.description}
+                  </Typography>
+                </CardContent>
+              </Box>
+              <Box className="flex gap-2 p-4">
+                <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEditResource(resource);
                   }}
-                  className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
+                  variant="contained"
+                  size="small"
+                  sx={{ textTransform: "none" }}
+
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <Button
                   disabled={deleteMutation.isPending}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteResource(resource.id);
                   }}
-                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer disabled:opacity-50"
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  sx={{ textTransform: "none" }}
+
                 >
                   Delete
-                </button>
-              </div>
-            </div>
+                </Button>
+              </Box>
+            </Card>
           ))}
-        </div>
+        </Box>
       )}
-      {isEditModalVisible && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Edit Resource</h3>
-            <form onSubmit={handleSubmit(handleEditSubmit)} noValidate className="space-y-4">
-              <div>
-                <div className="text-sm font-semibold">Name</div>
-                <input
-                  type="text"
-                  {...register("name")}
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-                )}
-              </div>
-              <div>
-                <div className="text-sm font-semibold">Description</div>
-                <textarea
-                  {...register("description")}
-                  className="w-full p-2 border border-gray-300 rounded h-32"
-                />
-                {errors.description && (
-                  <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
-                )}
-              </div>
-              <div className="flex gap-3 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditModalVisible(false);
-                    setEditingResourceId(null);
-                    reset();
-                  }}
-                  className="px-4 py-2 bg-gray-200 rounded text-sm cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={editMutation.isPending}
-                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer disabled:opacity-50"
-                >
-                  {editMutation.isPending ? "Updating..." : "Update Resource"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+      <Dialog
+        open={isEditModalVisible}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setEditingResourceId(null);
+          reset();
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Edit Resource</DialogTitle>
+        <DialogContent dividers>
+          <form id="edit-resource-form" onSubmit={handleSubmit(handleEditSubmit)} noValidate>
+            <Stack spacing={2}>
+              <TextField
+                label="Name"
+                fullWidth
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+              />
+              <TextField
+                label="Description"
+                multiline
+                rows={4}
+                fullWidth
+                {...register("description")}
+                error={!!errors.description}
+                helperText={errors.description?.message}
+              />
+            </Stack>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setIsEditModalVisible(false);
+              setEditingResourceId(null);
+              reset();
+            }}
+            variant="contained"
+            color="error"
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="edit-resource-form"
+            variant="contained"
+            disabled={editMutation.isPending}
+            sx={{ textTransform: "none" }}
+
+          >
+            {editMutation.isPending ? "Updating..." : "Update Resource"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

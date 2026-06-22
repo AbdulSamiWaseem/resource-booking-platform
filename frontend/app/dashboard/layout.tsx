@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { Box, Typography } from "@mui/material";
 
 export default function DashboardLayout({ children }: { children: ReactNode; }) {
   const router = useRouter();
@@ -18,9 +19,16 @@ export default function DashboardLayout({ children }: { children: ReactNode; }) 
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4 bg-white">
-        <div className="text-gray-500 font-medium">Loading...</div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
     );
   }
 

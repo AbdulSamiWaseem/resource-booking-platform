@@ -10,6 +10,20 @@ import { useResourceDetail } from "../../../services/queries";
 import { createBooking, deleteBooking } from "../../../services/mutation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  TextField,
+  Button,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Box,
+  Typography
+} from "@mui/material";
 
 const schema = z.object({
   date: z.string().min(1, "Date is required"),
@@ -94,32 +108,37 @@ export default function ResourceDetailPage() {
     );
 
     return (
-      <div>
+      <Box>
         {bookings.map((booking: any) => {
           const startTime = dayjs(booking.startTime).format("hh:mm A");
           const endTime = dayjs(booking.endTime).format("hh:mm A");
           const isOwner = booking.userId === userId;
           return (
-            <div key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
-              <div>
-                <div className="font-semibold text-nowrap">{startTime} - {endTime}</div>
-                <div className="text-gray-500">By: {booking.user.name}</div>
-              </div>
-              <button
+            <Box key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
+              <Box>
+                <Typography className="text-nowrap" sx={{ fontSize: "10px", fontWeight: 700 }}>{startTime} - {endTime}</Typography>
+                <Typography className="text-gray-500" sx={{ fontSize: "10px" }}>By: {booking.user.name}</Typography>
+              </Box>
+              <Button
                 disabled={!isOwner || cancelMutation.isPending}
-                onClick={() => cancelBooking(booking.id)}
-                className={`p-1 rounded text-white ${isOwner && !cancelMutation.isPending
-                  ? "bg-red-500 hover:bg-red-600 cursor-pointer"
-                  : "bg-red-500 cursor-not-allowed opacity-50"
-                  }`}
+                onClick={() => {
+                  cancelBooking(booking.id);
+                }}
+                variant="contained"
+                size="small"
+                color="error"
+                sx={{
+                  minWidth: "auto",
+                  fontSize: "10px",
+                  textTransform: "none"
+                }}
               >
                 Cancel
-              </button>
-            </div>
+              </Button>
+            </Box>
           );
-        })
-        }
-      </div >
+        })}
+      </Box>
     );
   };
 
@@ -130,99 +149,108 @@ export default function ResourceDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-gray-500 font-medium">Loading...</div>
-      </div>
+      <Box className="flex min-h-screen items-center justify-center p-4">
+        <Typography className="text-gray-500">Loading...</Typography>
+      </Box>
     );
   }
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-start pb-4 border-b border-gray-200">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">{resource?.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">{resource?.description}</p>
-        </div>
-        <div className="flex gap-4 min-w-80 mt-1">
-          <button
+    <Box className="p-6">
+      <Box className="flex justify-between items-start pb-4 border-b border-gray-200">
+        <Box className="flex flex-col">
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>{resource?.name}</Typography>
+          <Typography className="text-gray-500 mt-1">{resource?.description}</Typography>
+        </Box>
+        <Box className="flex gap-4 min-w-80 mt-1">
+          <Button
             onClick={() => setIsBookingModalVisible(true)}
-            className="text-sm bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">
+            variant="contained"
+            sx={{ textTransform: "none" }}
+          >
             Create Booking
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => router.push("/dashboard")}
-            className="text-sm bg-gray-200 px-4 py-2 rounded cursor-pointer"
+            variant="outlined"
+            sx={{ textTransform: "none" }}
           >
             Back to Dashboard
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="border border-gray-200 rounded-lg p-4 mt-6">
-        <div className="text-lg font-semibold mb-4">Resource Booking Schedule</div>
-        <Calendar cellRender={cellRender} />
-      </div>
+      <Card variant="outlined" className="mt-6">
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Resource Booking Schedule</Typography>
+          <Calendar cellRender={cellRender} />
+        </CardContent>
+      </Card>
 
-      {isBookingModalVisible && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Create Booking</h3>
-            <form onSubmit={handleSubmit(handleBookingSubmit)} noValidate className="space-y-4">
-              <div>
-                <div className="text-sm font-semibold" >Date</div>
-                <input
+      <Dialog
+        open={isBookingModalVisible}
+        onClose={() => setIsBookingModalVisible(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Create Booking</DialogTitle>
+        <DialogContent>
+          <form id="create-booking" onSubmit={handleSubmit(handleBookingSubmit)} noValidate>
+            <Stack spacing={2}>
+              <Box>
+                <Typography className="text-sm font-semibold mb-1">Date</Typography>
+                <TextField
                   type="date"
+                  fullWidth
                   {...register("date")}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  error={!!errors.date}
+                  helperText={errors.date?.message}
                 />
-                {errors.date && (
-                  <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-semibold" >Start Time</div>
-                  <input
+              </Box>
+              <Box className="grid grid-cols-2 gap-4">
+                <Box>
+                  <Typography className="text-sm font-semibold mb-1">Start Time</Typography>
+                  <TextField
                     type="time"
+                    fullWidth
                     {...register("startTime")}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    error={!!errors.startTime}
+                    helperText={errors.startTime?.message}
                   />
-                  {errors.startTime && (
-                    <p className="text-red-500 text-xs mt-1">{errors.startTime.message}</p>
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold" >End Time</div>
-                  <input
+                </Box>
+                <Box>
+                  <Typography className="text-sm font-semibold mb-1">End Time</Typography>
+                  <TextField
                     type="time"
+                    fullWidth
                     {...register("endTime")}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    error={!!errors.endTime}
+                    helperText={errors.endTime?.message}
                   />
-                  {errors.endTime && (
-                    <p className="text-red-500 text-xs mt-1">{errors.endTime.message}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-3 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsBookingModalVisible(false)}
-                  className="px-4 py-2 bg-gray-200 rounded text-sm cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={bookingMutation.isPending}
-                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
-                >
-                  {bookingMutation.isPending ? "Booking..." : "Book Resource"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+                </Box>
+              </Box>
+            </Stack>
+          </form>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setIsBookingModalVisible(false)}
+            variant="contained"
+            color="error"
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="create-booking"
+            variant="contained"
+            disabled={bookingMutation.isPending}
+            sx={{ textTransform: "none" }}
+          >
+            {bookingMutation.isPending ? "Booking..." : "Book Resource"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
-
