@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField, Button, Stack } from "@mui/material";
+import { TextField, Button, Stack, Box, Typography } from "@mui/material";
 import { createResource, ResourceInputs } from "../../services/mutation";
 
 const schema = z.object({
@@ -26,9 +26,9 @@ export default function CreateResource() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold">Create Resource</h1>
+    <Box className="p-6">
+      <Box className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>Create Resource</Typography>
         <Button
           onClick={() => router.push("/dashboard")}
           variant="outlined"
@@ -36,7 +36,7 @@ export default function CreateResource() {
         >
           Back to Dashboard
         </Button>
-      </div>
+      </Box>
 
       <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
         <Stack spacing={2}>
@@ -60,7 +60,7 @@ export default function CreateResource() {
             helperText={errors.description?.message}
           />
 
-          <div className="flex gap-4 pt-2">
+          <Box className="flex gap-4 pt-2">
             <Button
               type="submit"
               variant="contained"
@@ -78,9 +78,9 @@ export default function CreateResource() {
             >
               Cancel
             </Button>
-          </div>
+          </Box>
         </Stack>
       </form>
-    </div>
+    </Box>
   );
 }
