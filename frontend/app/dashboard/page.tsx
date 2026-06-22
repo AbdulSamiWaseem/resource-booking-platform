@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { getRequest, deleteRequest, putRequest } from "../services/apiCalls";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useResources } from "../services/queries";
+import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
 interface Resource {
   id: number;
@@ -12,34 +16,31 @@ interface Resource {
   createdAt: string;
 }
 
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+});
 export default function Dashboard() {
   const router = useRouter();
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [updating, setUpdating] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  useEffect(() => {
-    fetchResources();
-  }, []);
+  const { register, handleSubmit, formState, reset, setValue } = useForm<ResourceInputs>({
+    resolver: zodResolver(schema)
+  });
+  const { errors } = formState;
 
-  const fetchResources = async () => {
-    setLoading(true);
-    const onSuccess = (res: any) => {
-      setResources(res?.data?.resources || []);
-      setLoading(false);
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to load resources.");
-      setLoading(false);
-    };
-    await getRequest("resources", onSuccess, onError);
-  };
+  const { data, isLoading: loading, error } = useResources();
+
+  const resources: Resource[] = data?.resources || [];
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "Failed to load resources.");
+    }
+  }, [error]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -47,44 +48,32 @@ export default function Dashboard() {
     router.replace("/login");
   };
 
-  const handleDeleteResource = async (id: number) => {
+  const deleteMutation = deleteResource();
+
+  const editMutation = editResource();
+
+  const handleDeleteResource = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this resource?")) {
       return;
     }
-    const onSuccess = (res: any) => {
-      toast.success("Resource deleted successfully!");
-      fetchResources();
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to delete resource.");
-    };
-    await deleteRequest(null, `resources/${id}`, onSuccess, onError);
+    deleteMutation.mutate(id);
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditSubmit = async (data: ResourceInputs) => {
     if (!editingResourceId) return;
-    setUpdating(true);
-
-    const payload = {
-      name: editName,
-      description: editDescription,
-    };
-
-    const onSuccess = (res: any) => {
-      toast.success("Resource updated successfully!");
-      setIsEditModalVisible(false);
-      setEditingResourceId(null);
-      fetchResources();
-      setUpdating(false);
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to update resource.");
-      setUpdating(false);
-    };
-
-    await putRequest(payload, `resources/${editingResourceId}`, onSuccess, onError);
+    editMutation.mutate({
+      id: editingResourceId,
+      payload: {
+        name: data.name,
+        description: data.description,
+      },
+    }, {
+      onSuccess: () => {
+        setIsEditModalVisible(false);
+        setEditingResourceId(null);
+        reset();
+      },
+    });
   };
 
   const filteredResources = resources.filter((resource) =>
@@ -92,8 +81,8 @@ export default function Dashboard() {
   );
   const handleEditResource = (resource: Resource) => {
     setEditingResourceId(resource.id);
-    setEditName(resource.name);
-    setEditDescription(resource.description);
+    setValue("name", resource.name);
+    setValue("description", resource.description);
     setIsEditModalVisible(true);
   };
   return (
@@ -146,11 +135,12 @@ export default function Dashboard() {
                   Edit
                 </button>
                 <button
+                  disabled={deleteMutation.isPending}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteResource(resource.id);
                   }}
-                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer"
+                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded cursor-pointer disabled:opacity-50"
                 >
                   Delete
                 </button>
@@ -163,25 +153,27 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Edit Resource</h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(handleEditSubmit)} noValidate className="space-y-4">
               <div>
                 <div className="text-sm font-semibold">Name</div>
                 <input
                   type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  {...register("name")}
                   className="w-full p-2 border border-gray-300 rounded"
-                  required
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                )}
               </div>
               <div>
                 <div className="text-sm font-semibold">Description</div>
                 <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
+                  {...register("description")}
                   className="w-full p-2 border border-gray-300 rounded h-32"
-                  required
                 />
+                {errors.description && (
+                  <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
+                )}
               </div>
               <div className="flex gap-3 justify-end pt-4">
                 <button
@@ -189,6 +181,7 @@ export default function Dashboard() {
                   onClick={() => {
                     setIsEditModalVisible(false);
                     setEditingResourceId(null);
+                    reset();
                   }}
                   className="px-4 py-2 bg-gray-200 rounded text-sm cursor-pointer"
                 >
@@ -196,10 +189,10 @@ export default function Dashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={updating}
-                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
+                  disabled={editMutation.isPending}
+                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer disabled:opacity-50"
                 >
-                  {"Update Resource"}
+                  {editMutation.isPending ? "Updating..." : "Update Resource"}
                 </button>
               </div>
             </form>

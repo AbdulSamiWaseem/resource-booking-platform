@@ -5,33 +5,47 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getRequest, postRequest, deleteRequest } from "../../../services/apiCalls";
+import { useForm } from "react-hook-form";
+import { useResourceDetail } from "../../../services/queries";
+import { createBooking, deleteBooking } from "../../../services/mutation";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const schema = z.object({
+  date: z.string().min(1, "Date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+});
+
+interface BookingInputs {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
 
 export default function ResourceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const resourceId = Number(params.id);
 
-  const [resource, setResource] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
-  const [bookingDate, setBookingDate] = useState("");
-  const [bookingStartTime, setBookingStartTime] = useState("");
-  const [bookingEndTime, setBookingEndTime] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [cancelling, setCancelling] = useState<number[]>([]);
 
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const start = dayjs(`${bookingDate} ${bookingStartTime}`);
-    const end = dayjs(`${bookingDate} ${bookingEndTime}`);
+  const { register, handleSubmit, formState, reset } = useForm<BookingInputs>({
+    resolver: zodResolver(schema)
+  });
+  const { errors } = formState;
+
+  const bookingMutation = createBooking(resourceId);
+
+  const handleBookingSubmit = async (data: BookingInputs) => {
+    const start = dayjs(`${data.date} ${data.startTime}`);
+    const end = dayjs(`${data.date} ${data.endTime}`);
 
     if (!end.isAfter(start)) {
       toast.error("Start time must be before end time.");
       return;
     }
-    setSubmitting(true);
 
     const payload = {
       resourceId,
@@ -40,45 +54,16 @@ export default function ResourceDetailPage() {
       endTime: end.toISOString(),
     };
 
-    const onSuccess = (res: any) => {
-      toast.success("Booking created successfully!");
-      setIsBookingModalVisible(false);
-      setBookingDate("");
-      setBookingStartTime("");
-      setBookingEndTime("");
-      fetchResourceDetails();
-      setSubmitting(false);
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to create booking.");
-      setSubmitting(false);
-    };
-
-    await postRequest(payload, 'bookings', onSuccess, onError);
+    bookingMutation.mutate(payload, {
+      onSuccess: () => {
+        setIsBookingModalVisible(false);
+        reset();
+      },
+    });
   };
 
-  const fetchResourceDetails = async () => {
-    setLoading(true);
-    const onSuccess = (res: any) => {
-      const resource = res?.data?.resource;
-      if (resource) {
-        setResource(resource);
-      } else {
-        toast.error("Resource not found");
-        router.push("/dashboard");
-      }
-      setLoading(false);
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to load resource details.");
-      setLoading(false);
-    };
-
-    await getRequest(`resources/${resourceId}`, onSuccess, onError);
-  };
-
+  const { data: resourceData, isLoading: loading } = useResourceDetail(resourceId);
+  const resource = resourceData?.resource;
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -86,10 +71,9 @@ export default function ResourceDetailPage() {
     if (parsedUser.user?.id) {
       setUserId(parsedUser.user.id);
     }
-    if (resourceId) {
-      fetchResourceDetails();
-    }
-  }, [resourceId]);
+  }, []);
+
+  const cancelMutation = deleteBooking(resourceId);
 
   const cancelBooking = async (bookingId: number) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) {
@@ -99,18 +83,8 @@ export default function ResourceDetailPage() {
       toast.error("User not found. Please log in again.");
       return;
     }
-    setCancelling((prev) => [...prev, bookingId]);
     const payload = { userId };
-    const onSuccess = (res: any) => {
-      toast.success("Booking cancelled successfully!");
-      fetchResourceDetails();
-      setCancelling((prev) => prev.filter((id) => id !== bookingId));
-    };
-    const onError = (err: any) => {
-      toast.error(err?.message || "Failed to cancel booking.");
-      setCancelling((prev) => prev.filter((id) => id !== bookingId));
-    };
-    await deleteRequest(payload, `bookings/${bookingId}`, onSuccess, onError);
+    cancelMutation.mutate({ bookingId, payload });
   };
   const dateCellRender = (value: any) => {
     if (!resource?.bookings) return null;
@@ -132,9 +106,9 @@ export default function ResourceDetailPage() {
                 <div className="text-gray-500">By: {booking.user.name}</div>
               </div>
               <button
-                disabled={!isOwner || cancelling.includes(booking.id)}
+                disabled={!isOwner || cancelMutation.isPending}
                 onClick={() => cancelBooking(booking.id)}
-                className={`p-1 rounded text-white ${isOwner && !cancelling.includes(booking.id)
+                className={`p-1 rounded text-white ${isOwner && !cancelMutation.isPending
                   ? "bg-red-500 hover:bg-red-600 cursor-pointer"
                   : "bg-red-500 cursor-not-allowed opacity-50"
                   }`}
@@ -165,8 +139,8 @@ export default function ResourceDetailPage() {
     <div className="p-6">
       <div className="flex justify-between items-start pb-4 border-b border-gray-200">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">{resource.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
+          <h1 className="text-2xl font-bold">{resource?.name}</h1>
+          <p className="text-sm text-gray-500 mt-1">{resource?.description}</p>
         </div>
         <div className="flex gap-4 min-w-80 mt-1">
           <button
@@ -192,37 +166,40 @@ export default function ResourceDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Create Booking</h3>
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(handleBookingSubmit)} noValidate className="space-y-4">
               <div>
                 <div className="text-sm font-semibold" >Date</div>
                 <input
                   type="date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
+                  {...register("date")}
                   className="w-full p-2 border border-gray-300 rounded"
-                  required
                 />
+                {errors.date && (
+                  <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-semibold" >Start Time</div>
                   <input
                     type="time"
-                    value={bookingStartTime}
-                    onChange={(e) => setBookingStartTime(e.target.value)}
+                    {...register("startTime")}
                     className="w-full p-2 border border-gray-300 rounded"
-                    required
                   />
+                  {errors.startTime && (
+                    <p className="text-red-500 text-xs mt-1">{errors.startTime.message}</p>
+                  )}
                 </div>
                 <div>
                   <div className="text-sm font-semibold" >End Time</div>
                   <input
                     type="time"
-                    value={bookingEndTime}
-                    onChange={(e) => setBookingEndTime(e.target.value)}
+                    {...register("endTime")}
                     className="w-full p-2 border border-gray-300 rounded"
-                    required
                   />
+                  {errors.endTime && (
+                    <p className="text-red-500 text-xs mt-1">{errors.endTime.message}</p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-3 justify-end pt-4">
@@ -235,10 +212,10 @@ export default function ResourceDetailPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={bookingMutation.isPending}
                   className="px-4 py-2 bg-blue-500 text-white rounded text-sm cursor-pointer"
                 >
-                  {submitting ? "Booking..." : "Book Resource"}
+                  {bookingMutation.isPending ? "Booking..." : "Book Resource"}
                 </button>
               </div>
             </form>

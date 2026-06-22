@@ -1,38 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import { postRequest } from "../../services/apiCalls";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createResource, ResourceInputs } from "../../services/mutation";
+
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+});
 
 export default function CreateResource() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const { register, handleSubmit, formState } = useForm<ResourceInputs>({
+    resolver: zodResolver(schema)
+  });
+  const { errors } = formState;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const createMutation = createResource();
 
-    if (!name) {
-      toast.error("Please enter a resource name.");
-      return;
-    }
-
-    if (!description) {
-      toast.error("Please enter a description.");
-      return;
-    }
-
-    const onSuccess = (res: any) => {
-      toast.success(res?.message || "Resource created successfully!");
-      router.push("/dashboard");
-    };
-
-    const onError = (err: any) => {
-      toast.error(err?.message || "An error occurred.");
-    };
-
-    await postRequest({ name, description }, "resources/", onSuccess, onError);
+  const handleOnSubmit = (data: ResourceInputs) => {
+    createMutation.mutate(data);
   };
 
   return (
@@ -47,35 +36,40 @@ export default function CreateResource() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(handleOnSubmit)} noValidate className="space-y-4">
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold">Resource Name</div>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            {...register("name")}
             placeholder="e.g. Meeting Room"
             className="w-full p-2 border border-gray-300 rounded"
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs">{errors.name.message}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold">Description</div>
           <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            {...register("description")}
             placeholder="Describe the resource..."
             rows={3}
             className="w-full p-2 border border-gray-300 rounded"
           />
+          {errors.description && (
+            <p className="text-red-500 text-xs">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="flex gap-4 pt-2">
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+            disabled={createMutation.isPending}
+            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
           >
-            Save Resource
+            {createMutation.isPending ? "Saving..." : "Save Resource"}
           </button>
           <button
             type="button"
