@@ -21,6 +21,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Box,
+  Typography
 } from "@mui/material";
 
 const schema = z.object({
@@ -106,17 +108,17 @@ export default function ResourceDetailPage() {
     );
 
     return (
-      <div>
+      <Box>
         {bookings.map((booking: any) => {
           const startTime = dayjs(booking.startTime).format("hh:mm A");
           const endTime = dayjs(booking.endTime).format("hh:mm A");
           const isOwner = booking.userId === userId;
           return (
-            <div key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
-              <div>
-                <div className="font-semibold text-nowrap">{startTime} - {endTime}</div>
-                <div className="text-gray-500">By: {booking.user.name}</div>
-              </div>
+            <Box key={booking.id} className="flex justify-between items-center text-[10px] mb-1 border border-gray-200 rounded px-1 py-0.5">
+              <Box>
+                <Typography className="text-nowrap" sx={{ fontSize: "10px", fontWeight: 700 }}>{startTime} - {endTime}</Typography>
+                <Typography className="text-gray-500" sx={{ fontSize: "10px" }}>By: {booking.user.name}</Typography>
+              </Box>
               <Button
                 disabled={!isOwner || cancelMutation.isPending}
                 onClick={() => {
@@ -133,10 +135,10 @@ export default function ResourceDetailPage() {
               >
                 Cancel
               </Button>
-            </div>
+            </Box>
           );
         })}
-      </div>
+      </Box>
     );
   };
 
@@ -147,19 +149,19 @@ export default function ResourceDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-gray-500 font-medium">Loading...</div>
-      </div>
+      <Box className="flex min-h-screen items-center justify-center p-4">
+        <Typography className="text-gray-500">Loading...</Typography>
+      </Box>
     );
   }
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-start pb-4 border-b border-gray-200">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">{resource?.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">{resource?.description}</p>
-        </div>
-        <div className="flex gap-4 min-w-80 mt-1">
+    <Box className="p-6">
+      <Box className="flex justify-between items-start pb-4 border-b border-gray-200">
+        <Box className="flex flex-col">
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>{resource?.name}</Typography>
+          <Typography className="text-gray-500 mt-1">{resource?.description}</Typography>
+        </Box>
+        <Box className="flex gap-4 min-w-80 mt-1">
           <Button
             onClick={() => setIsBookingModalVisible(true)}
             variant="contained"
@@ -174,12 +176,12 @@ export default function ResourceDetailPage() {
           >
             Back to Dashboard
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       <Card variant="outlined" className="mt-6">
         <CardContent>
-          <div className="text-lg font-semibold">Resource Booking Schedule</div>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Resource Booking Schedule</Typography>
           <Calendar cellRender={cellRender} />
         </CardContent>
       </Card>
@@ -191,11 +193,11 @@ export default function ResourceDetailPage() {
         maxWidth="sm"
       >
         <DialogTitle>Create Booking</DialogTitle>
-        <DialogContent dividers>
+        <DialogContent>
           <form id="create-booking" onSubmit={handleSubmit(handleBookingSubmit)} noValidate>
             <Stack spacing={2}>
-              <div>
-                <div className="text-sm font-semibold mb-1">Date</div>
+              <Box>
+                <Typography className="text-sm font-semibold mb-1">Date</Typography>
                 <TextField
                   type="date"
                   fullWidth
@@ -203,10 +205,10 @@ export default function ResourceDetailPage() {
                   error={!!errors.date}
                   helperText={errors.date?.message}
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-semibold mb-1">Start Time</div>
+              </Box>
+              <Box className="grid grid-cols-2 gap-4">
+                <Box>
+                  <Typography className="text-sm font-semibold mb-1">Start Time</Typography>
                   <TextField
                     type="time"
                     fullWidth
@@ -214,9 +216,9 @@ export default function ResourceDetailPage() {
                     error={!!errors.startTime}
                     helperText={errors.startTime?.message}
                   />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold mb-1">End Time</div>
+                </Box>
+                <Box>
+                  <Typography className="text-sm font-semibold mb-1">End Time</Typography>
                   <TextField
                     type="time"
                     fullWidth
@@ -224,8 +226,8 @@ export default function ResourceDetailPage() {
                     error={!!errors.endTime}
                     helperText={errors.endTime?.message}
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             </Stack>
           </form>
         </DialogContent>
@@ -249,6 +251,6 @@ export default function ResourceDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 }
