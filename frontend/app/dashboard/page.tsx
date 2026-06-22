@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { getApi } from "../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useResources } from "../services/queries";
 import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
 interface Resource {
@@ -33,10 +32,7 @@ export default function Dashboard() {
   });
   const { errors } = formState;
 
-  const { data, isLoading: loading, error } = useQuery({
-    queryKey: ["resources"],
-    queryFn: () => getApi("resources"),
-  });
+  const { data, isLoading: loading, error } = useResources();
 
   const resources: Resource[] = data?.resources || [];
 
