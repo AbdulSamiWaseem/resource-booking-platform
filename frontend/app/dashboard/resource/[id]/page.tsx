@@ -5,9 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Calendar } from "antd";
 import dayjs from "dayjs";
-import { getApi } from "../../../services/apiCalls";
 import { useForm } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useResourceDetail } from "../../../services/queries";
 import { createBooking, deleteBooking } from "../../../services/mutation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,10 +74,7 @@ export default function ResourceDetailPage() {
     });
   };
 
-  const { data: resourceData, isLoading: loading } = useQuery({
-    queryKey: ["resource", resourceId],
-    queryFn: () => getApi(`resources/${resourceId}`),
-  });
+  const { data: resourceData, isLoading: loading } = useResourceDetail(resourceId);
   const resource = resourceData?.resource;
 
   useEffect(() => {
