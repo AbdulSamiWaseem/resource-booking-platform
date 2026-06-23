@@ -3,86 +3,53 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { DevTool } from "@hookform/devtools";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, TextField, Button, Stack, Box, Typography } from "@mui/material";
-import { login, LoginInput } from "../services/mutation";
+import { authClient } from "../services/auth-client";
+import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 const schema = z.object({
-  name: z.string().min(1, "Name is required"),
   email: z.string().min(1, "Email is required").email("Invalid email format"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 export default function Login() {
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
-  const form = useForm<LoginInput>({
+  const form = useForm({
     resolver: zodResolver(schema),
   });
-  const { register, control, handleSubmit, formState, reset } = form;
+  const { register, handleSubmit, formState, reset } = form;
   const { errors } = formState;
 
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      router.replace("/dashboard");
-    } else {
-      setCheckingAuth(false);
-    }
-  }, [router]);
-
-  const loginMutation = login();
-
-  const handleOnSubmit = (data: LoginInput) => {
-    loginMutation.mutate(data, {
-      onSuccess: () => {
-        reset();
+  const handleOnSubmit = async (data: any) => {
+    await authClient.signIn.email({
+      email: data.email,
+      password: data.password,
+    }, {
+      onRequest: () => {
+        setSubmitting(true);
       },
+      onSuccess: () => {
+        toast.success("Successfully logged in");
+        reset();
+        router.push("/dashboard");
+      },
+      onError: (ctx) => {
+        toast.error(ctx.error.message || "Sign in failed");
+        setSubmitting(false);
+      }
     });
   };
 
-  if (checkingAuth) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        <Typography>Loading...</Typography>
-      </Box>
-    );
-  }
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        flexDirection: "column",
-        gap: 2,
-      }}
-    >
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 2 }}>
       <Typography variant="h5">Resource Booking Platform</Typography>
       <Card variant="outlined" className="w-full max-w-md">
         <CardContent>
           <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
             <Stack spacing={2}>
-              <TextField
-                label="Name"
-                type="text"
-                placeholder="Enter your name"
-                fullWidth
-                {...register("name")}
-                error={!!errors.name}
-                helperText={errors.name?.message}
-              />
-
               <TextField
                 label="Email"
                 type="email"
@@ -90,23 +57,38 @@ export default function Login() {
                 fullWidth
                 {...register("email")}
                 error={!!errors.email}
-                helperText={errors.email?.message}
+                helperText={errors.email?.message as string}
+              />
+
+              <TextField
+                label="Password"
+                type="password"
+                placeholder="Enter your password"
+                fullWidth
+                {...register("password")}
+                error={!!errors.password}
+                helperText={errors.password?.message as string}
               />
 
               <Button
                 type="submit"
                 variant="contained"
                 fullWidth
-                disabled={loginMutation.isPending}
+                disabled={submitting}
                 sx={{ py: 1, textTransform: "none" }}
               >
-                {loginMutation.isPending ? "Submitting..." : "Submit"}
+                {submitting ? "Signing In..." : "Sign In"}
               </Button>
+
+              <Link href="/signup">
+                <Button fullWidth sx={{ textTransform: "none" }}>
+                  Don't have an account? Sign Up
+                </Button>
+              </Link>
             </Stack>
           </form>
         </CardContent>
       </Card>
-      <DevTool control={control} />
     </Box>
   );
 }

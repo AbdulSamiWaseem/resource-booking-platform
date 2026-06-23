@@ -37,7 +37,7 @@ export default function SignUp() {
         setSubmitting(true);
       },
       onSuccess: () => {
-        toast.success("Successfully registered!");
+        toast.success("Successfully registered");
         reset();
         router.push("/dashboard");
       },
