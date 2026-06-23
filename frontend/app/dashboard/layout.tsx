@@ -1,36 +1,37 @@
 "use client";
 
-import { useEffect, useState, ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Typography } from "@mui/material";
+import { authClient } from "../services/auth-client";
 
 export default function DashboardLayout({ children }: { children: ReactNode; }) {
   const router = useRouter();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const { data: session, isPending } = authClient.useSession();
 
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem("user");
-  //   if (!storedUser) {
-  //     router.replace("/login");
-  //   } else {
-  //     setCheckingAuth(false);
-  //   }
-  // }, [router]);
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.replace("/login");
+    }
+  }, [isPending, session, router]);
 
-  // if (checkingAuth) {
-  //   return (
-  //     <Box
-  //       sx={{
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //         height: "100vh",
-  //       }}
-  //     >
-  //       <Typography>Loading...</Typography>
-  //     </Box>
-  //   );
-  // }
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+  if (!session) {
+    return null;
+  }
 
   return <>{children}</>;
 }
