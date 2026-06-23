@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,14 @@ export default function SignUp() {
   });
   const { register, handleSubmit, formState, reset } = form;
   const { errors } = formState;
+
+  const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    if (session) {
+      redirect("/dashboard");
+    }
+  }, [session]);
 
 
   const handleOnSubmit = async (data: any) => {

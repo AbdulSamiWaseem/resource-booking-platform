@@ -1,19 +1,18 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import { Box, Typography } from "@mui/material";
 import { authClient } from "../services/auth-client";
 
 export default function DashboardLayout({ children }: { children: ReactNode; }) {
-  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     if (!isPending && !session) {
-      router.replace("/login");
+      redirect("/login");
     }
-  }, [isPending, session, router]);
+  }, [isPending, session]);
 
   if (isPending) {
     return (
