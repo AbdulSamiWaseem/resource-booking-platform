@@ -4,7 +4,7 @@ import { findResourceById } from "../dal/resourceDal";
 import { ResponseObject } from "../utils/constants";
 
 export const addBooking = async (
-  body: { resourceId: number; userId: number; startTime: string; endTime: string },
+  body: { resourceId: number; userId: string; startTime: string; endTime: string },
   resp: ResponseObject
 ) => {
   try {
@@ -99,7 +99,7 @@ export const getBookings = async (resp: ResponseObject) => {
   }
 };
 
-export const removeBookingById = async (id: number, userId: number, resp: ResponseObject) => {
+export const removeBookingById = async (id: number, userId: string, resp: ResponseObject) => {
   try {
     if (!userId) {
       return {
