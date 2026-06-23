@@ -20,6 +20,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
+import { authClient } from "../services/auth-client";
 import { useResources } from "../services/queries";
 import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
@@ -56,8 +57,8 @@ export default function Dashboard() {
     }
   }, [error]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await authClient.signOut();
     toast.success("Successfully logged out.");
     router.replace("/login");
   };
