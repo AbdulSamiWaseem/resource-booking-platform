@@ -5,7 +5,8 @@ import { useRouter, redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, TextField, Button, Stack, Box, Typography } from "@mui/material";
+import { Card, CardContent, TextField, Button, Stack, Box, Typography, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { authClient } from "../services/auth-client";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
@@ -18,6 +19,7 @@ const schema = z.object({
 
 export default function SignUp() {
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const form = useForm({
@@ -85,12 +87,24 @@ export default function SignUp() {
 
               <TextField
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 fullWidth
                 {...register("password")}
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment
+                        position="end"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
 
               <Button
