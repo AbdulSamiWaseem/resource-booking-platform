@@ -13,19 +13,23 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 
 const schema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
-export default function Login() {
+
+export default function SignUp() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { signIn, isSubmitting } = useAuth();
+  const { signUp, isSubmitting } = useAuth();
+
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema)
   });
   const { register, handleSubmit, formState, reset } = form;
   const { errors } = formState;
+
   const { data: session } = authClient.useSession();
 
   useEffect(() => {
@@ -34,8 +38,9 @@ export default function Login() {
     }
   }, [session]);
 
+
   const handleOnSubmit = async (data: any) => {
-    await signIn(data);
+    await signUp(data);
   };
 
   return (
@@ -46,13 +51,23 @@ export default function Login() {
           <form onSubmit={handleSubmit(handleOnSubmit)} noValidate>
             <Stack spacing={2}>
               <TextField
+                label="Name"
+                type="text"
+                placeholder="Enter your name"
+                fullWidth
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+              />
+
+              <TextField
                 label="Email"
                 type="email"
                 placeholder="Enter your email"
                 fullWidth
                 {...register("email")}
                 error={!!errors.email}
-                helperText={errors.email?.message as string}
+                helperText={errors.email?.message}
               />
 
               <TextField
@@ -84,12 +99,12 @@ export default function Login() {
                 disabled={isSubmitting}
                 sx={{ py: 1, textTransform: "none" }}
               >
-                {isSubmitting ? "Signing In..." : "Sign In"}
+                {isSubmitting ? "Signing Up..." : "Sign Up"}
               </Button>
 
-              <Link href="/signup">
+              <Link href="/login">
                 <Button fullWidth sx={{ textTransform: "none" }}>
-                  Don't have an account? Sign Up
+                  Already have an account? Sign In
                 </Button>
               </Link>
             </Stack>

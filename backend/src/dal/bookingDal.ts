@@ -2,7 +2,7 @@ import prisma from "./prisma";
 
 export const createBooking = async (data: {
   resourceId: number;
-  userId: number;
+  userId: string;
   startTime: Date;
   endTime: Date;
 }) => {
