@@ -16,7 +16,10 @@ export const useAuth = () => {
         onRequest: () => {
           setIsSubmitting(true);
         },
-        onSuccess: () => {
+        onSuccess: (ctx) => {
+          if (ctx.data) {
+            localStorage.setItem("user", JSON.stringify(ctx.data));
+          }
           toast.success("Successfully logged in");
           redirect("/dashboard");
         },
@@ -39,7 +42,10 @@ export const useAuth = () => {
         onRequest: () => {
           setIsSubmitting(true);
         },
-        onSuccess: () => {
+        onSuccess: (ctx) => {
+          if (ctx.data) {
+            localStorage.setItem("user", JSON.stringify(ctx.data));
+          }
           toast.success("Successfully registered");
           redirect("/dashboard");
         },
@@ -53,6 +59,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await authClient.signOut();
+    localStorage.removeItem("user");
     toast.success("Successfully logged out.");
     redirect("/login");
   };
