@@ -21,6 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import { authClient } from "../services/auth-client";
+import { useAuth } from "../services/useAuth";
 import { useResources } from "../services/queries";
 import { deleteResource, editResource, ResourceInputs } from "../services/mutation";
 
@@ -37,6 +38,7 @@ const schema = z.object({
 });
 export default function Dashboard() {
   const router = useRouter();
+  const { signOut } = useAuth();
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<number | null>(null);
@@ -58,9 +60,7 @@ export default function Dashboard() {
   }, [error]);
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    toast.success("Successfully logged out.");
-    router.replace("/login");
+    await signOut();
   };
 
   const deleteMutation = deleteResource();

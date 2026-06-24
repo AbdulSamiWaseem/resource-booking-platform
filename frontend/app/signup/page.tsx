@@ -5,6 +5,7 @@ import { useRouter, redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "../services/useAuth";
 import { Card, CardContent, TextField, Button, Stack, Box, Typography, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { authClient } from "../services/auth-client";
@@ -21,6 +22,7 @@ export default function SignUp() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { signUp, isSubmitting } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(schema)
@@ -38,24 +40,7 @@ export default function SignUp() {
 
 
   const handleOnSubmit = async (data: any) => {
-    await authClient.signUp.email({
-      email: data.email,
-      password: data.password,
-      name: data.name,
-    }, {
-      onRequest: () => {
-        setSubmitting(true);
-      },
-      onSuccess: () => {
-        toast.success("Successfully registered");
-        reset();
-        router.push("/dashboard");
-      },
-      onError: (ctx) => {
-        toast.error(ctx.error.message || "Sign up failed");
-        setSubmitting(false);
-      }
-    });
+    await signUp(data);
   };
 
   return (
@@ -111,10 +96,10 @@ export default function SignUp() {
                 type="submit"
                 variant="contained"
                 fullWidth
-                disabled={submitting}
+                disabled={isSubmitting}
                 sx={{ py: 1, textTransform: "none" }}
               >
-                {submitting ? "Signing Up..." : "Sign Up"}
+                {isSubmitting ? "Signing Up..." : "Sign Up"}
               </Button>
 
               <Link href="/login">

@@ -5,6 +5,7 @@ import { useRouter, redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "../services/useAuth";
 import { Card, CardContent, TextField, Button, Stack, Box, Typography, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { authClient } from "../services/auth-client";
@@ -19,6 +20,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { signIn, isSubmitting } = useAuth();
   const form = useForm({
     resolver: zodResolver(schema),
   });
@@ -33,23 +35,7 @@ export default function Login() {
   }, [session]);
 
   const handleOnSubmit = async (data: any) => {
-    await authClient.signIn.email({
-      email: data.email,
-      password: data.password,
-    }, {
-      onRequest: () => {
-        setSubmitting(true);
-      },
-      onSuccess: () => {
-        toast.success("Successfully logged in");
-        reset();
-        router.push("/dashboard");
-      },
-      onError: (ctx) => {
-        toast.error(ctx.error.message || "Sign in failed");
-        setSubmitting(false);
-      }
-    });
+    await signIn(data);
   };
 
   return (
@@ -71,7 +57,7 @@ export default function Login() {
 
               <TextField
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 fullWidth
                 {...register("password")}
@@ -95,10 +81,10 @@ export default function Login() {
                 type="submit"
                 variant="contained"
                 fullWidth
-                disabled={submitting}
+                disabled={isSubmitting}
                 sx={{ py: 1, textTransform: "none" }}
               >
-                {submitting ? "Signing In..." : "Sign In"}
+                {isSubmitting ? "Signing In..." : "Sign In"}
               </Button>
 
               <Link href="/signup">
